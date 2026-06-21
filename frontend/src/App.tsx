@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import AppLayout from './layout/AppLayout';
 import { getSummary, getShapGlobal, getEmployees } from './api';
 import type { Summary, ShapFeature, EmployeeAnomaly } from './types';
@@ -9,46 +9,37 @@ import ShapBarChart from './components/charts/ShapBarChart';
 import ScoreHistogram from './components/charts/ScoreHistogram';
 import ShapLocalPanel from './components/charts/ShapLocalPanel';
 import AnomalyTable from './components/tables/AnomalyTable';
-import AddEmployeeModal from './components/ui/AddEmployeeModal';
+import AddEmployeePage from './components/ui/AddEmployeePage';
 
-const ICONS = {
-  users: (
-    <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-    </svg>
-  ),
-  alert: (
-    <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-    </svg>
-  ),
-  check: (
-    <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-  chart: (
-    <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-    </svg>
-  ),
-};
+import { Users, AlertTriangle, CheckCircle, BarChart2, Plus, ArrowLeft } from 'lucide-react';
 
 import Login from './components/ui/Login';
+import Onboarding from './components/ui/Onboarding';
+import { toast } from 'sonner';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(
+    localStorage.getItem('onboarding_done') === 'true'
+  );
+  
+  // Routing state
+  const [currentHash, setCurrentHash] = useState(window.location.hash || '#overview');
+
   const [summary, setSummary] = useState<Summary | null>(null);
   const [shap, setShap] = useState<ShapFeature[]>([]);
   const [topN, setTopN] = useState(10);
   const [allScores, setAllScores] = useState<number[]>([]);
   const [selectedEmp, setSelectedEmp] = useState<EmployeeAnomaly | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [activeRisk, setActiveRisk] = useState<string>('');
   const [scoreRange, setScoreRange] = useState<{ min: number; max: number } | null>(null);
-  const tableRef = useRef<HTMLDivElement>(null);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [tableKey, setTableKey] = useState(0); // bump to force table re-fetch
+
+  useEffect(() => {
+    const onHashChange = () => setCurrentHash(window.location.hash || '#overview');
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -57,7 +48,7 @@ export default function App() {
         localStorage.removeItem('token');
         setIsAuthenticated(false);
       } else {
-        setError('Tidak dapat terhubung ke backend. Pastikan API berjalan.');
+        toast.error('Tidak dapat terhubung ke backend. Pastikan API berjalan.');
       }
     });
   }, [isAuthenticated, tableKey]);
@@ -86,7 +77,7 @@ export default function App() {
     const next = activeRisk === cat ? '' : cat;
     setActiveRisk(next);
     setScoreRange(null);
-    setTimeout(() => tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    window.location.hash = '#tabel';
   };
 
   const handleHistogramBarClick = (min: number, max: number) => {
@@ -94,7 +85,7 @@ export default function App() {
       prev && Math.abs(prev.min - min) < 1e-9 ? null : { min, max }
     );
     setActiveRisk('');
-    setTimeout(() => tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    window.location.hash = '#tabel';
   };
 
   const clearExternalFilters = () => {
@@ -102,93 +93,178 @@ export default function App() {
     setScoreRange(null);
   };
 
+  if (!hasCompletedOnboarding) {
+    return (
+      <Onboarding 
+        onComplete={() => {
+          localStorage.setItem('onboarding_done', 'true');
+          setHasCompletedOnboarding(true);
+        }} 
+      />
+    );
+  }
+
   if (!isAuthenticated) {
     return <Login onSuccess={() => setIsAuthenticated(true)} />;
   }
 
+  // Define Page Titles
+  const getPageTitle = () => {
+    switch (currentHash) {
+      case '#overview': return 'Dashboard Overview';
+      case '#risiko': return 'Distribusi Risiko';
+      case '#shap': return 'SHAP Global Analysis';
+      case '#histogram': return 'Histogram Skor Anomali';
+      case '#tabel': return 'Evaluasi Karyawan';
+      case '#tambah': return 'Tambah Data Karyawan';
+      default: return 'Dashboard Overview';
+    }
+  };
+
   return (
     <AppLayout>
       {/* Page heading */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-3 animate-in fade-in slide-in-from-top-4">
         <div>
-          <h1 className="text-title-sm font-bold text-gray-800 dark:text-white/90">
-            Dashboard Overview
+          <h1 className="text-3xl font-bold tracking-tight font-jakarta text-slate-900 dark:text-white">
+            {getPageTitle()}
           </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Ringkasan deteksi anomali profil kinerja karyawan — IBM HR Analytics dataset (1.470 karyawan)
+          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400 font-inter">
+            {currentHash === '#tambah' 
+              ? 'Lengkapi formulir di bawah ini untuk menambahkan dan mengevaluasi profil karyawan baru.'
+              : 'Pantau ringkasan tingkat risiko dan deteksi anomali pada profil karyawan Anda.'}
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-600 dark:bg-brand-600 dark:hover:bg-brand-500"
-          >
-            <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Tambah Karyawan
-          </button>
-          <span className="inline-flex items-center gap-2 rounded-full border border-success-200 bg-success-50 px-3 py-1 text-xs font-medium text-success-600 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-500">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success-500" />
-            Model Aktif · IF + XGBoost-SHAP
-          </span>
+          {currentHash === '#tambah' ? (
+            <button
+              onClick={() => window.location.hash = '#overview'}
+              className="inline-flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700"
+            >
+              <ArrowLeft className="size-4" />
+              Kembali
+            </button>
+          ) : (
+            <button
+              onClick={() => window.location.hash = '#tambah'}
+              className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-brand-500/20 transition hover:bg-brand-600 hover:-translate-y-0.5 dark:bg-brand-600 dark:hover:bg-brand-500"
+            >
+              <Plus className="size-4" />
+              Tambah Karyawan
+            </button>
+          )}
         </div>
       </div>
 
-      {error && (
-        <div className="mb-6 rounded-xl border border-error-200 bg-error-50 px-4 py-3 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">
-          {error}
+      {/* OVERVIEW PAGE */}
+      {(currentHash === '#overview' || currentHash === '') && (
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <section id="overview" className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <StatsCard label="Total Karyawan Dipantau" value={stats?.total} icon={<Users className="size-6" />} color="default" />
+            <StatsCard
+              label="Risiko Tinggi" value={byRisk('tinggi')} sub="Butuh tinjauan segera"
+              icon={<AlertTriangle className="size-6" />} color="tinggi"
+              onClick={() => handleRiskCardClick('tinggi')}
+              active={activeRisk === 'tinggi'}
+            />
+            <StatsCard
+              label="Risiko Sedang" value={byRisk('sedang')} sub="Perlu mulai dipantau"
+              icon={<BarChart2 className="size-6" />} color="sedang"
+              onClick={() => handleRiskCardClick('sedang')}
+              active={activeRisk === 'sedang'}
+            />
+            <StatsCard
+              label="Risiko Rendah" value={byRisk('rendah')} sub="Kondisi stabil & normal"
+              icon={<CheckCircle className="size-6" />} color="rendah"
+              onClick={() => handleRiskCardClick('rendah')}
+              active={activeRisk === 'rendah'}
+            />
+          </section>
+
+          <div className="mb-8 grid grid-cols-1 gap-6 xl:grid-cols-12">
+            <div className="xl:col-span-5">
+              <Section title="Distribusi Tingkat Risiko" desc="Proporsi tingkat risiko karyawan di seluruh perusahaan.">
+                <RiskPieChart data={dist} />
+              </Section>
+            </div>
+
+            <div className="xl:col-span-7">
+              <Section
+                title="Faktor Pendorong Risiko Utama"
+                desc="Atribut kinerja yang paling dominan memicu terdeteksinya anomali."
+                action={
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-slate-500 dark:text-slate-400 font-inter">Top</span>
+                    {[5, 10, 15, 20].map((n) => (
+                      <button
+                        key={n}
+                        onClick={() => setTopN(n)}
+                        className={`h-7 min-w-[32px] rounded-md px-2 text-xs font-medium transition ${
+                          topN === n
+                            ? 'bg-brand-500 text-white'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10'
+                        }`}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                }
+              >
+                <ShapBarChart data={shap} />
+              </Section>
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <Section title="Sebaran Skor Risiko" desc="Klik pada batang grafik untuk menyaring karyawan di tabel berdasarkan rentang skor tertentu.">
+              <ScoreHistogram scores={allScores} p90={p90} p95={p95} onBarClick={handleHistogramBarClick} selectedRange={scoreRange} />
+            </Section>
+          </div>
+
+          <div className="mb-4">
+            <Section
+              title="Daftar Evaluasi Karyawan"
+              desc={
+                activeRisk
+                  ? `Filter aktif: Risiko ${activeRisk}. Klik kartu metrik di atas untuk membatalkan.`
+                  : scoreRange
+                  ? `Filter aktif: Skor terpilih. Klik grafik di atas untuk membatalkan.`
+                  : 'Klik baris mana saja untuk melihat analisis detail individu.'
+              }
+            >
+              <AnomalyTable
+                key={tableKey}
+                filterRisk={activeRisk}
+                scoreRange={scoreRange}
+                onClearFilter={clearExternalFilters}
+                onRowClick={(emp) => setSelectedEmp(emp)}
+              />
+            </Section>
+          </div>
         </div>
       )}
 
-      {/* Stats grid */}
-      <section id="overview" className="mb-6 grid grid-cols-1 gap-4 scroll-mt-24 sm:grid-cols-2 xl:grid-cols-4">
-        <StatsCard label="Total Karyawan Dipantau" value={stats?.total} icon={ICONS.users} color="default" />
-        <StatsCard
-          label="Anomali Tinggi" value={byRisk('tinggi')} sub="Profil perlu ditinjau segera"
-          icon={ICONS.alert} color="tinggi"
-          onClick={() => handleRiskCardClick('tinggi')}
-          active={activeRisk === 'tinggi'}
-        />
-        <StatsCard
-          label="Anomali Sedang" value={byRisk('sedang')} sub="Profil perlu dipantau"
-          icon={ICONS.chart} color="sedang"
-          onClick={() => handleRiskCardClick('sedang')}
-          active={activeRisk === 'sedang'}
-        />
-        <StatsCard
-          label="Anomali Rendah" value={byRisk('rendah')} sub="Profil relatif umum"
-          icon={ICONS.check} color="rendah"
-          onClick={() => handleRiskCardClick('rendah')}
-          active={activeRisk === 'rendah'}
-        />
-      </section>
-
-      {/* Score statistics row */}
-      <section className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatsCard label="Rata-rata Skor Anomali" value={stats ? stats.mean.toFixed(4) : undefined} sub="Rata-rata seluruh karyawan" color="default" />
-        <StatsCard label="Skor Anomali Minimum" value={stats ? stats.min.toFixed(4) : undefined} sub="Skor terendah dalam data" color="default" />
-        <StatsCard label="Skor Anomali Maksimum" value={stats ? stats.max.toFixed(4) : undefined} sub="Skor tertinggi dalam data" color="default" />
-      </section>
-
-      {/* Charts row */}
-      <div className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-12">
-        <div id="risiko" className="xl:col-span-5 scroll-mt-24">
-          <Section
-            title="Distribusi Tingkat Anomali Karyawan"
-            desc="Pembagian karyawan berdasarkan threshold P90 / P95 anomaly score"
-          >
-            <RiskPieChart data={dist} />
+      {/* RISIKO PAGE */}
+      {currentHash === '#risiko' && (
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <Section title="Distribusi Tingkat Risiko" desc="Proporsi tingkat risiko karyawan di seluruh perusahaan.">
+            <div className="max-w-3xl mx-auto py-8">
+              <RiskPieChart data={dist} />
+            </div>
           </Section>
         </div>
+      )}
 
-        <div id="shap" className="xl:col-span-7 scroll-mt-24">
+      {/* SHAP PAGE */}
+      {currentHash === '#shap' && (
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <Section
-            title="Faktor Paling Berpengaruh terhadap Anomali"
-            desc="Kontribusi rata-rata (Mean |SHAP|) dari setiap atribut terhadap deteksi anomali profil karyawan"
+            title="Faktor Pendorong Risiko Utama"
+            desc="Atribut kinerja yang paling dominan memicu terdeteksinya anomali."
             action={
               <div className="flex items-center gap-1.5">
-                <span className="text-xs text-gray-500 dark:text-gray-400">Top</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-inter">Top</span>
                 {[5, 10, 15, 20].map((n) => (
                   <button
                     key={n}
@@ -196,7 +272,7 @@ export default function App() {
                     className={`h-7 min-w-[32px] rounded-md px-2 text-xs font-medium transition ${
                       topN === n
                         ? 'bg-brand-500 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10'
                     }`}
                   >
                     {n}
@@ -205,70 +281,84 @@ export default function App() {
               </div>
             }
           >
-            <ShapBarChart data={shap} />
+            <div className="max-w-5xl mx-auto py-4">
+              <ShapBarChart data={shap} />
+            </div>
           </Section>
         </div>
-      </div>
-
-      {/* Histogram */}
-      <div id="histogram" className="mb-6 scroll-mt-24">
-        <Section
-          title="Distribusi Skor Anomali Karyawan"
-          desc="Histogram 30 bin berdasarkan skor Isolation Forest — biru: perhatian rendah · amber: perhatian sedang · merah: perhatian tinggi. Klik bin untuk filter tabel."
-        >
-          <ScoreHistogram
-            scores={allScores}
-            p90={p90}
-            p95={p95}
-            onBarClick={handleHistogramBarClick}
-            selectedRange={scoreRange}
-          />
-        </Section>
-      </div>
-
-      {/* Table */}
-      <div id="tabel" className="scroll-mt-24" ref={tableRef}>
-        <Section
-          title="Daftar Profil Karyawan Anomali"
-          desc={
-            activeRisk
-              ? `Filter aktif: Anomali ${activeRisk} — klik kartu lagi atau tekan Reset untuk hapus`
-              : scoreRange
-              ? `Filter aktif: Skor ${scoreRange.min.toFixed(3)}–${scoreRange.max.toFixed(3)} — klik bar lagi atau tekan Reset untuk hapus`
-              : 'Klik baris untuk melihat detail faktor penyebab anomali per karyawan'
-          }
-        >
-          <AnomalyTable
-            key={tableKey}
-            filterRisk={activeRisk}
-            scoreRange={scoreRange}
-            onClearFilter={clearExternalFilters}
-            onRowClick={(emp) => setSelectedEmp(emp)}
-          />
-        </Section>
-      </div>
-
-      {/* Local SHAP modal */}
-      {selectedEmp && (
-        <ShapLocalPanel employee={selectedEmp} onClose={() => setSelectedEmp(null)} />
       )}
 
-      {/* Add Employee modal */}
-      {showAddModal && (
-        <AddEmployeeModal
-          onClose={() => setShowAddModal(false)}
-          onCreated={() => {
+      {/* HISTOGRAM PAGE */}
+      {currentHash === '#histogram' && (
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <Section
+            title="Sebaran Skor Risiko"
+            desc="Klik pada batang grafik untuk menyaring karyawan di tabel berdasarkan rentang skor tertentu."
+          >
+            <div className="max-w-5xl mx-auto py-4">
+              <ScoreHistogram
+                scores={allScores}
+                p90={p90}
+                p95={p95}
+                onBarClick={handleHistogramBarClick}
+                selectedRange={scoreRange}
+              />
+            </div>
+          </Section>
+        </div>
+      )}
+
+      {/* TABEL PAGE */}
+      {currentHash === '#tabel' && (
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <Section
+            title="Daftar Evaluasi Karyawan"
+            desc={
+              activeRisk
+                ? `Filter aktif: Risiko ${activeRisk}. Buka Overview untuk membatalkan.`
+                : scoreRange
+                ? `Filter aktif: Skor terpilih. Buka Histogram untuk membatalkan.`
+                : 'Klik baris mana saja untuk melihat analisis detail individu.'
+            }
+          >
+            <AnomalyTable
+              key={tableKey}
+              filterRisk={activeRisk}
+              scoreRange={scoreRange}
+              onClearFilter={clearExternalFilters}
+              onRowClick={(emp) => setSelectedEmp(emp)}
+            />
+          </Section>
+        </div>
+      )}
+
+      {/* TAMBAH KARYAWAN PAGE */}
+      {currentHash === '#tambah' && (
+        <AddEmployeePage
+          onSuccess={() => {
             setTableKey((k) => k + 1); // refresh table
             getSummary().then(setSummary).catch(() => {}); // refresh stats
           }}
         />
       )}
 
+      {/* Local SHAP modal */}
+      {selectedEmp && (
+        <ShapLocalPanel employee={selectedEmp} onClose={() => setSelectedEmp(null)} />
+      )}
+
       {/* Disclaimer */}
-      <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-400">
-        <span className="font-semibold">Catatan Interpretasi: </span>
-        Hasil deteksi anomali ini merupakan indikator awal monitoring berbasis model Isolation Forest, bukan keputusan final HR. Profil dengan tingkat anomali tinggi menunjukkan kombinasi atribut yang tidak umum dibandingkan populasi data — bukan penilaian negatif terhadap karyawan. Tindak lanjut tetap memerlukan evaluasi dan pertimbangan HR.
-      </div>
+      {(currentHash === '#overview' || currentHash === '') && (
+        <div className="mt-8 rounded-xl border border-blue-100 bg-blue-50/50 px-5 py-4 text-sm text-blue-800 font-inter flex gap-3 items-start dark:border-blue-900/30 dark:bg-blue-900/10 dark:text-blue-200 animate-in fade-in slide-in-from-bottom-4">
+          <div className="mt-0.5 text-blue-500">
+            <CheckCircle className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="font-semibold block mb-1">Catatan Penggunaan</span>
+            Sistem deteksi ini dirancang sebagai asisten pemantauan awal. Keputusan tindak lanjut tetap sepenuhnya berada di tangan dan kebijaksanaan tim HR berdasarkan evaluasi menyeluruh.
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 }

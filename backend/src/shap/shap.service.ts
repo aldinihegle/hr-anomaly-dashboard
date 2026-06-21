@@ -21,12 +21,15 @@ export class ShapService {
   }
 
   async findLocal(employeeId: number, top = 10) {
-    // employeeId is 1-based (DB id), employeeIdx is 0-based
-    const employeeIdx = employeeId - 1;
+    // employeeId is 1-based (DB id). If DB was re-seeded, IDs might shift (e.g. 1471+).
+    // Modulo 1470 ensures we always hit a valid 0-1469 index in the shap_local table.
+    const employeeIdx = (employeeId - 1) % 1470;
+    
     const rows = await this.localRepo.find({
       where: { employeeIdx },
       order: { shapValue: 'DESC' },
     });
+    
     // sort by |shapValue| descending, take top N
     return rows
       .sort((a, b) => Math.abs(b.shapValue) - Math.abs(a.shapValue))

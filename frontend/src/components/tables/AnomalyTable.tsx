@@ -80,7 +80,7 @@ export default function AnomalyTable({ defaultRisk = '', filterRisk, scoreRange,
     setError(null);
     try {
       const res = await getEmployees({
-        page, perPage: 50,
+        page, perPage: 10,
         risk: risk || undefined, sort, order,
         department: department || undefined,
         jobRole: jobRole || undefined,

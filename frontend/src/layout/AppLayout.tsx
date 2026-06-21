@@ -3,17 +3,19 @@ import { SidebarProvider, useSidebar } from '../context/SidebarContext';
 import AppSidebar from './AppSidebar';
 import AppHeader from './AppHeader';
 import Backdrop from './Backdrop';
+import { Toaster } from 'sonner';
 
 function LayoutInner({ children }: { children: ReactNode }) {
-  const { isExpanded, isHovered, isMobileOpen } = useSidebar();
+  const { isExpanded, isMobileOpen } = useSidebar();
   return (
-    <div className="min-h-screen xl:flex">
+    <div className="min-h-screen flex flex-col w-full">
       <AppSidebar />
       <Backdrop />
+      <Toaster position="bottom-right" richColors />
       <div
         className={`flex-1 transition-all duration-300 ease-in-out
-          ${isExpanded || isHovered ? 'lg:ml-[290px]' : 'lg:ml-[90px]'}
-          ${isMobileOpen ? 'ml-0' : ''}
+          ${isExpanded ? 'lg:pl-[290px]' : 'lg:pl-[90px]'}
+          ${isMobileOpen ? 'pl-0' : ''}
         `}
       >
         <AppHeader />

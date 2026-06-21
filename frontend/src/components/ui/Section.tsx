@@ -17,7 +17,7 @@ export default function Section({ title, children, action, desc, id, className =
     >
       <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
         <div>
-          <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">{title}</h3>
+          <h3 className="text-xl font-semibold font-jakarta text-gray-800 dark:text-white/90">{title}</h3>
           {desc && <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{desc}</p>}
         </div>
         {action && <div className="flex items-center gap-2">{action}</div>}
