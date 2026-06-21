@@ -10,8 +10,16 @@ import type {
 } from '../types';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   timeout: 15_000,
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 // ── Summary ──────────────────────────────────────────────────────────────
@@ -77,5 +85,8 @@ export interface CreateEmployeePayload {
 
 export const createEmployee = (data: CreateEmployeePayload): Promise<EmployeeAnomaly> =>
   api.post<EmployeeAnomaly>('/employees', data).then((r) => r.data);
+
+export const login = (email: string, password: string): Promise<{ access_token: string; user: any }> =>
+  api.post<{ access_token: string; user: any }>('/auth/login', { email, password }).then((r) => r.data);
 
 export default api;

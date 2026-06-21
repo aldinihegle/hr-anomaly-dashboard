@@ -34,7 +34,10 @@ const ICONS = {
   ),
 };
 
+import Login from './components/ui/Login';
+
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
   const [summary, setSummary] = useState<Summary | null>(null);
   const [shap, setShap] = useState<ShapFeature[]>([]);
   const [topN, setTopN] = useState(10);
@@ -48,20 +51,28 @@ export default function App() {
   const [tableKey, setTableKey] = useState(0); // bump to force table re-fetch
 
   useEffect(() => {
-    getSummary().then(setSummary).catch(() =>
-      setError('Tidak dapat terhubung ke backend. Pastikan NestJS berjalan di port 3000.')
-    );
-  }, []);
+    if (!isAuthenticated) return;
+    getSummary().then(setSummary).catch((e) => {
+      if (e?.response?.status === 401) {
+        localStorage.removeItem('token');
+        setIsAuthenticated(false);
+      } else {
+        setError('Tidak dapat terhubung ke backend. Pastikan API berjalan.');
+      }
+    });
+  }, [isAuthenticated, tableKey]);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     getShapGlobal(topN).then(setShap).catch(() => {});
-  }, [topN]);
+  }, [topN, isAuthenticated]);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     getEmployees({ perPage: 2000, sort: 'id', order: 'asc' })
       .then((res) => setAllScores(res.items.map((e) => e.anomalyScoreIf)))
       .catch(() => {});
-  }, []);
+  }, [isAuthenticated, tableKey]);
 
   const dist = summary?.riskDistribution ?? [];
   const stats = summary?.anomalyScoreStats;
@@ -90,6 +101,10 @@ export default function App() {
     setActiveRisk('');
     setScoreRange(null);
   };
+
+  if (!isAuthenticated) {
+    return <Login onSuccess={() => setIsAuthenticated(true)} />;
+  }
 
   return (
     <AppLayout>

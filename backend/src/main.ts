@@ -18,6 +18,7 @@ async function bootstrap() {
     .setTitle('HR Anomaly Dashboard API')
     .setDescription('Deteksi Anomali Profil Kinerja Karyawan — Isolation Forest + XGBoost-SHAP')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   SwaggerModule.setup('api/docs', app, SwaggerModule.createDocument(app, config));
 
