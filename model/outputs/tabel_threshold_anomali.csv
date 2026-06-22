@@ -1,0 +1,4 @@
+kategori,kondisi,threshold
+rendah,< P90,0.5820227831998566
+sedang,P90 ≤ x < P95,0.6473218643372125
+tinggi,≥ P95,0.6473218643372125
