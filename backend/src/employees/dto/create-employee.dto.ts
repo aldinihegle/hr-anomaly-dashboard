@@ -80,7 +80,7 @@ export class CreateEmployeeDto {
   @ApiProperty({ minimum: 11, maximum: 25 }) @Type(() => Number) @IsInt() @Min(11) @Max(25)
   percentSalaryHike: number;
 
-  @ApiProperty({ minimum: 3, maximum: 4 }) @Type(() => Number) @IsInt() @Min(3) @Max(4)
+  @ApiProperty({ minimum: 1, maximum: 4 }) @Type(() => Number) @IsInt() @Min(1) @Max(4)
   performanceRating: number;
 
   @ApiProperty({ minimum: 1, maximum: 4 }) @Type(() => Number) @IsInt() @Min(1) @Max(4)

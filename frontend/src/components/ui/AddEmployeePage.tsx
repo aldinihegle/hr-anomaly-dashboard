@@ -75,6 +75,22 @@ export default function AddEmployeePage({ onSuccess }: Props) {
     setLoading(true);
     setError(null);
     try {
+      const requiredFields: (keyof CreateEmployeePayload)[] = [
+        'age', 'businessTravel', 'department', 'distanceFromHome', 'education',
+        'educationField', 'environmentSatisfaction', 'gender', 'jobInvolvement',
+        'jobLevel', 'jobRole', 'jobSatisfaction', 'maritalStatus', 'monthlyIncome',
+        'dailyRate', 'hourlyRate', 'monthlyRate', 'numCompaniesWorked', 'overTime',
+        'percentSalaryHike', 'performanceRating', 'relationshipSatisfaction',
+        'stockOptionLevel', 'totalWorkingYears', 'trainingTimesLastYear',
+        'workLifeBalance', 'yearsAtCompany', 'yearsInCurrentRole',
+        'yearsSinceLastPromotion', 'yearsWithCurrManager'
+      ];
+      
+      const missing = requiredFields.filter(f => form[f] === undefined || form[f] === '');
+      if (missing.length > 0) {
+        throw new Error(`Mohon lengkapi seluruh form data. Masih ada form yang kosong atau belum dipilih.`);
+      }
+
       const emp = await createEmployee(form as CreateEmployeePayload);
       setResult(emp);
       onSuccess();
@@ -217,7 +233,21 @@ export default function AddEmployeePage({ onSuccess }: Props) {
                         </div>
                       </div>
                       {numField('distanceFromHome', 'Jarak Rumah ke Kantor (km)', 1, 30, 'Contoh: 5')}
-                      {selectField('education', 'Tingkat Pendidikan (1-5)', ['1','2','3','4','5'])}
+                      <div>
+                        <label className={labelCls}>Tingkat Pendidikan</label>
+                        <select
+                          value={form.education ?? ''}
+                          onChange={(e) => set('education', Number(e.target.value))}
+                          className="w-full h-[46px] rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm text-gray-800 focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-100 dark:focus:bg-gray-900 transition-all appearance-none"
+                        >
+                          <option value="" disabled>Pilih...</option>
+                          <option value={1}>1 - Di Bawah Perguruan Tinggi</option>
+                          <option value={2}>2 - Perguruan Tinggi</option>
+                          <option value={3}>3 - Sarjana</option>
+                          <option value={4}>4 - Magister</option>
+                          <option value={5}>5 - Doktor</option>
+                        </select>
+                      </div>
                       {selectField('educationField', 'Bidang Studi', [
                         'Life Sciences', 'Medical', 'Marketing', 'Technical Degree', 'Human Resources', 'Other',
                       ])}
@@ -239,7 +269,6 @@ export default function AddEmployeePage({ onSuccess }: Props) {
                         'Sales Representative', 'Research Director', 'Human Resources',
                       ])}
                       {numField('jobLevel', 'Level Jabatan (1-5)', 1, 5, 'Contoh: 2')}
-                      {numField('monthlyIncome', 'Gaji Bulanan ($)', 1000, 20000, 'Contoh: 5000')}
                       {numField('dailyRate', 'Tarif Harian ($)', 100, 2000, 'Contoh: 800')}
                       {numField('hourlyRate', 'Tarif Per Jam ($)', 30, 100, 'Contoh: 65')}
                       {numField('monthlyRate', 'Tarif Bulanan ($)', 2000, 30000, 'Contoh: 15000')}
@@ -308,26 +337,26 @@ export default function AddEmployeePage({ onSuccess }: Props) {
                     <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 border-b border-gray-100 pb-4 dark:border-gray-800">
                       Indikator Kepuasan & Kinerja
                     </h3>
-                    <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2 md:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2 md:grid-cols-2">
                       {[
-                        { k: 'jobSatisfaction', l: 'Kepuasan Kerja (1-4)', opts: [1,2,3,4] },
-                        { k: 'environmentSatisfaction', l: 'Kepuasan Lingkungan (1-4)', opts: [1,2,3,4] },
-                        { k: 'relationshipSatisfaction', l: 'Kepuasan Hubungan Kerja (1-4)', opts: [1,2,3,4] },
-                        { k: 'workLifeBalance', l: 'Keseimbangan Hidup (WLB) (1-4)', opts: [1,2,3,4] },
-                        { k: 'jobInvolvement', l: 'Keterlibatan Kerja (1-4)', opts: [1,2,3,4] },
-                        { k: 'performanceRating', l: 'Rating Kinerja (3-4)', opts: [3,4] },
+                        { k: 'jobSatisfaction', l: 'Kepuasan Kerja', opts: [{v:1,l:'1 - Rendah'},{v:2,l:'2 - Sedang'},{v:3,l:'3 - Tinggi'},{v:4,l:'4 - Sangat Tinggi'}] },
+                        { k: 'environmentSatisfaction', l: 'Kepuasan Lingkungan', opts: [{v:1,l:'1 - Rendah'},{v:2,l:'2 - Sedang'},{v:3,l:'3 - Tinggi'},{v:4,l:'4 - Sangat Tinggi'}] },
+                        { k: 'relationshipSatisfaction', l: 'Kepuasan Hubungan Kerja', opts: [{v:1,l:'1 - Rendah'},{v:2,l:'2 - Sedang'},{v:3,l:'3 - Tinggi'},{v:4,l:'4 - Sangat Tinggi'}] },
+                        { k: 'workLifeBalance', l: 'Keseimbangan Hidup (WLB)', opts: [{v:1,l:'1 - Buruk'},{v:2,l:'2 - Baik'},{v:3,l:'3 - Lebih Baik'},{v:4,l:'4 - Terbaik'}] },
+                        { k: 'jobInvolvement', l: 'Keterlibatan Kerja', opts: [{v:1,l:'1 - Rendah'},{v:2,l:'2 - Sedang'},{v:3,l:'3 - Tinggi'},{v:4,l:'4 - Sangat Tinggi'}] },
+                        { k: 'performanceRating', l: 'Rating Kinerja', opts: [{v:1,l:'1 - Rendah'},{v:2,l:'2 - Baik'},{v:3,l:'3 - Sangat Baik'},{v:4,l:'4 - Luar Biasa'}] },
                       ].map((field) => (
                         <div key={field.k}>
                           <label className={labelCls}>{field.l}</label>
-                          <div className="flex h-[46px] items-center gap-5">
+                          <div className="flex h-[46px] items-center gap-4 mt-1">
                             {field.opts.map((opt) => (
-                              <label key={opt} className="flex items-center gap-1.5 cursor-pointer">
+                              <label key={opt.v} className="flex items-center gap-1.5 cursor-pointer">
                                 <input
-                                  type="radio" name={field.k} value={opt} checked={form[field.k as keyof CreateEmployeePayload] === opt}
+                                  type="radio" name={field.k} value={opt.v} checked={form[field.k as keyof CreateEmployeePayload] === opt.v}
                                   onChange={(e) => set(field.k as keyof CreateEmployeePayload, Number(e.target.value))}
                                   className="size-4.5 text-brand-500 focus:ring-brand-500 dark:bg-gray-800 dark:border-gray-700"
                                 />
-                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{opt}</span>
+                                <span className="text-[13px] font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">{opt.l}</span>
                               </label>
                             ))}
                           </div>
