@@ -61,6 +61,15 @@ export class CreateEmployeeDto {
   @ApiProperty() @Type(() => Number) @IsInt() @Min(1000)
   monthlyIncome: number;
 
+  @ApiProperty() @Type(() => Number) @IsInt() @Min(0)
+  dailyRate: number;
+
+  @ApiProperty() @Type(() => Number) @IsInt() @Min(0)
+  hourlyRate: number;
+
+  @ApiProperty() @Type(() => Number) @IsInt() @Min(0)
+  monthlyRate: number;
+
   @ApiProperty() @Type(() => Number) @IsInt() @Min(0) @Max(9)
   numCompaniesWorked: number;
 

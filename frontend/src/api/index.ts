@@ -70,11 +70,24 @@ export const getShapLocal = (employeeId: number, top = 12): Promise<ShapLocalEnt
 
 // ── Create employee ───────────────────────────────────────────────────────
 export interface CreateEmployeePayload {
-  age: number; businessTravel: string; department: string;
-  distanceFromHome: number; education: number; educationField: string;
-  environmentSatisfaction: number; gender: string; jobInvolvement: number;
-  jobLevel: number; jobRole: string; jobSatisfaction: number;
-  maritalStatus: string; monthlyIncome: number; numCompaniesWorked: number;
+  age: number;
+  businessTravel: string;
+  department: string;
+  distanceFromHome: number;
+  education: number;
+  educationField: string;
+  environmentSatisfaction: number;
+  gender: string;
+  jobInvolvement: number;
+  jobLevel: number;
+  jobRole: string;
+  jobSatisfaction: number;
+  maritalStatus: string;
+  monthlyIncome: number;
+  dailyRate: number;
+  hourlyRate: number;
+  monthlyRate: number;
+  numCompaniesWorked: number;
   overTime: string; percentSalaryHike: number; performanceRating: number;
   relationshipSatisfaction: number; stockOptionLevel: number;
   totalWorkingYears: number; trainingTimesLastYear: number;

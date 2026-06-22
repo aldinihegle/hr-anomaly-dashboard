@@ -238,7 +238,11 @@ export default function AddEmployeePage({ onSuccess }: Props) {
                         'Manufacturing Director', 'Healthcare Representative', 'Manager',
                         'Sales Representative', 'Research Director', 'Human Resources',
                       ])}
-                      {selectField('jobLevel', 'Level Jabatan (1-5)', ['1','2','3','4','5'])}
+                      {numField('jobLevel', 'Level Jabatan (1-5)', 1, 5, 'Contoh: 2')}
+                      {numField('monthlyIncome', 'Gaji Bulanan ($)', 1000, 20000, 'Contoh: 5000')}
+                      {numField('dailyRate', 'Tarif Harian ($)', 100, 2000, 'Contoh: 800')}
+                      {numField('hourlyRate', 'Tarif Per Jam ($)', 30, 100, 'Contoh: 65')}
+                      {numField('monthlyRate', 'Tarif Bulanan ($)', 2000, 30000, 'Contoh: 15000')}
                       
                       <div className="md:col-span-2">
                         <label className={labelCls}>Frekuensi Perjalanan Dinas</label>

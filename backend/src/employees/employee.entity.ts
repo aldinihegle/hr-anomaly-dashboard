@@ -20,6 +20,9 @@ export class EmployeeAnomaly {
   @Column({ nullable: true }) jobSatisfaction: number;
   @Column({ nullable: true }) maritalStatus: string;
   @Column({ nullable: true }) monthlyIncome: number;
+  @Column({ nullable: true }) dailyRate: number;
+  @Column({ nullable: true }) hourlyRate: number;
+  @Column({ nullable: true }) monthlyRate: number;
   @Column({ nullable: true }) numCompaniesWorked: number;
   @Column({ nullable: true }) overTime: string;
   @Column({ nullable: true }) percentSalaryHike: number;
