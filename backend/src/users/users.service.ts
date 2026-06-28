@@ -13,4 +13,12 @@ export class UsersService {
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { email } });
   }
+
+  async findById(id: number): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { id } });
+  }
+
+  async markOnboardingDone(id: number): Promise<void> {
+    await this.usersRepository.update(id, { onboardingDone: true });
+  }
 }

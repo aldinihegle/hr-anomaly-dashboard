@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { login } from '../../api';
 import { toast } from 'sonner';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface LoginProps {
   onSuccess: () => void;
 }
 
 export default function Login({ onSuccess }: LoginProps) {
-  const [email, setEmail] = useState('admin@admin.com');
-  const [password, setPassword] = useState('admin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -19,8 +21,9 @@ export default function Login({ onSuccess }: LoginProps) {
       localStorage.setItem('token', res.access_token);
       toast.success('Login berhasil!');
       onSuccess();
-    } catch (err) {
-      toast.error('Email atau password salah');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Login gagal. Silakan coba lagi.';
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -93,14 +96,23 @@ export default function Login({ onSuccess }: LoginProps) {
                   Lupa sandi?
                 </button>
               </div>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Masukkan password Anda"
-                className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 font-inter transition-all outline-none focus:bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 dark:bg-zinc-900/50 dark:border-zinc-800 dark:text-white dark:focus:bg-zinc-900 dark:focus:border-brand-500 placeholder:text-slate-400"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Masukkan password Anda"
+                  className="w-full px-4 py-3.5 pr-12 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 font-inter transition-all outline-none focus:bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 dark:bg-zinc-900/50 dark:border-zinc-800 dark:text-white dark:focus:bg-zinc-900 dark:focus:border-brand-500 placeholder:text-slate-400"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center pt-1 pb-4">

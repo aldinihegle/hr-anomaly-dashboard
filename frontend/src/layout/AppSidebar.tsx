@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSidebar } from '../context/SidebarContext';
-import { LayoutDashboard, PieChart, BarChart3, Activity, Users, UserPlus } from 'lucide-react';
+import { LayoutDashboard, PieChart, BarChart3, Activity, Users, UserPlus, HelpCircle } from 'lucide-react';
 
 interface NavItem {
   name: string;
@@ -30,9 +30,14 @@ const NAV: NavItem[] = [
     icon: <Activity className="size-5" />,
   },
   {
-    name: 'Tabel Karyawan',
-    href: '#tabel',
+    name: 'Data Karyawan',
+    href: '#karyawan',
     icon: <Users className="size-5" />,
+  },
+  {
+    name: 'Analisis Anomali',
+    href: '#tabel',
+    icon: <BarChart3 className="size-5" />,
   },
   {
     name: 'Tambah Karyawan',
@@ -122,18 +127,18 @@ export default function AppSidebar() {
       </div>
 
       {/* Footer info */}
-      {showText && (
-        <div className="mt-auto pb-6 text-[11px] font-inter leading-relaxed text-slate-400 dark:text-slate-500">
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-zinc-900">
-            <div className="font-semibold text-slate-700 dark:text-slate-300">Sistem Deteksi</div>
-            <div className="mt-1">Isolation Forest + XGBoost-SHAP</div>
-            <div className="mt-2 flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-              <span>Online · IBM HR Dataset</span>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="mt-auto pb-6">
+        <a 
+          href="#onboarding"
+          className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-zinc-900/50 dark:hover:text-slate-200 ${
+            !showText ? 'justify-center' : 'justify-start'
+          }`}
+          title="Bantuan & Onboarding"
+        >
+          <HelpCircle className="size-5 shrink-0" />
+          {showText && <span className="font-inter font-medium">Bantuan</span>}
+        </a>
+      </div>
     </aside>
   );
 }

@@ -16,6 +16,9 @@ export interface EmployeeAnomaly {
   jobSatisfaction: number;
   maritalStatus: string;
   monthlyIncome: number;
+  dailyRate: number;
+  hourlyRate: number;
+  monthlyRate: number;
   numCompaniesWorked: number;
   overTime: string;
   percentSalaryHike: number;

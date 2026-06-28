@@ -11,6 +11,15 @@ export default function AppHeader() {
     else toggleMobileSidebar();
   };
 
+  let user: any = null;
+  try {
+    user = JSON.parse(localStorage.getItem('user') || 'null');
+  } catch (e) {}
+  
+  const userName = user?.name || 'User';
+  const userInitials = userName.substring(0, 2).toUpperCase();
+  const userRole = user?.role === 'admin' ? 'Administrator' : 'HR Analyst';
+
   return (
     <header className="sticky top-0 z-40 flex w-full border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
       <div className="flex w-full items-center justify-between px-4 py-3 md:px-6 lg:py-4">
@@ -39,11 +48,11 @@ export default function AppHeader() {
           {/* User pill */}
           <div className="flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1.5 dark:border-gray-800">
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-500 text-xs font-semibold text-white">
-              AH
+              {userInitials}
             </div>
             <div className="hidden text-xs sm:block">
-              <div className="font-medium text-gray-700 dark:text-gray-300">Aldini Hegle</div>
-              <div className="text-gray-400">HR Analyst</div>
+              <div className="font-medium text-gray-700 dark:text-gray-300">{userName}</div>
+              <div className="text-gray-400">{userRole}</div>
             </div>
           </div>
 
@@ -51,7 +60,7 @@ export default function AppHeader() {
           <button
             onClick={() => {
               localStorage.removeItem('token');
-              window.location.reload();
+              window.location.replace(window.location.pathname);
             }}
             title="Keluar"
             aria-label="Logout"

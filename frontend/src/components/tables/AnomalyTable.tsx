@@ -10,21 +10,27 @@ interface Column {
   label: string;
   sortable?: boolean;
   className?: string;
+  group: 'id' | 'ml' | 'raw';
 }
 
+// ML output columns: hasil olahan model
+// raw columns: data mentah karyawan
 const COLUMNS: Column[] = [
-  { key: 'id', label: '#', sortable: true, className: 'w-12' },
-  { key: 'anomalyScoreIf', label: 'Skor Anomali', sortable: true },
-  { key: 'riskCategory', label: 'Tingkat Anomali' },
-  { key: 'department', label: 'Departemen' },
-  { key: 'jobRole', label: 'Jabatan' },
-  { key: 'age', label: 'Usia', sortable: true },
-  { key: 'gender', label: 'Gender' },
-  { key: 'monthlyIncome', label: 'Pendapatan', sortable: true },
-  { key: 'overTime', label: 'Lembur' },
-  { key: 'attrition', label: 'Attrisi' },
-  { key: 'totalWorkingYears', label: 'Pengalaman (th)', sortable: true },
+  { key: 'id',               label: '#',               sortable: true,  className: 'w-12', group: 'id' },
+  { key: 'anomalyScoreIf',   label: 'Skor Anomali',    sortable: true,  group: 'ml' },
+  { key: 'riskCategory',     label: 'Tingkat Risiko',                   group: 'ml' },
+  { key: 'department',       label: 'Departemen',                       group: 'raw' },
+  { key: 'jobRole',          label: 'Jabatan',                          group: 'raw' },
+  { key: 'age',              label: 'Usia',             sortable: true,  group: 'raw' },
+  { key: 'gender',           label: 'Gender',                           group: 'raw' },
+  { key: 'monthlyIncome',    label: 'Gaji Bulanan',     sortable: true,  group: 'raw' },
+  { key: 'overTime',         label: 'Lembur',                           group: 'raw' },
+  { key: 'attrition',        label: 'Attrisi',                          group: 'raw' },
+  { key: 'totalWorkingYears',label: 'Pengalaman (th)',  sortable: true,  group: 'raw' },
 ];
+
+const ML_COUNT  = COLUMNS.filter((c) => c.group === 'ml').length;
+const RAW_COUNT = COLUMNS.filter((c) => c.group === 'raw').length;
 
 const ALLOWED_SORT = new Set(['anomalyScoreIf', 'monthlyIncome', 'age', 'totalWorkingYears', 'id']);
 
@@ -37,7 +43,7 @@ interface Props {
 }
 
 const selectCls =
-  'h-9 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none transition focus:border-brand-500 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300';
+  'h-9 w-full sm:w-auto rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none transition focus:border-brand-500 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300';
 
 export default function AnomalyTable({ defaultRisk = '', filterRisk, scoreRange, onClearFilter, onRowClick }: Props) {
   const [data, setData] = useState<PaginatedEmployees | null>(null);
@@ -118,7 +124,7 @@ export default function AnomalyTable({ defaultRisk = '', filterRisk, scoreRange,
   return (
     <div>
       {/* Filters */}
-      <div className="mb-4 flex flex-wrap items-center gap-2.5">
+      <div className="mb-4 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2.5">
         <select className={selectCls} value={risk} onChange={(e) => { setRisk(e.target.value); setPage(1); }}>
           <option value="">Semua Tingkat Anomali</option>
           <option value="rendah">Perhatian Rendah</option>
@@ -140,7 +146,7 @@ export default function AnomalyTable({ defaultRisk = '', filterRisk, scoreRange,
         </select>
         <button
           onClick={resetFilters}
-          className="h-9 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-600 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-white/5"
+          className="h-9 w-full rounded-lg border border-gray-200 px-4 text-sm font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 sm:w-auto"
         >
           Reset
         </button>
@@ -174,12 +180,36 @@ export default function AnomalyTable({ defaultRisk = '', filterRisk, scoreRange,
         <div className="custom-scrollbar max-w-full overflow-x-auto">
           <table className="min-w-[900px] w-full">
             <thead>
+              {/* Baris 1: Group header — pemisah ML vs Data Mentah */}
+              <tr className="border-b border-gray-200 dark:border-gray-700">
+                {/* Kolom # tidak punya group */}
+                <th className="bg-gray-50 dark:bg-white/[0.02] px-4 py-1.5" />
+                {/* Kolom Hasil Model ML */}
+                <th
+                  colSpan={ML_COUNT}
+                  className="px-4 py-1.5 text-center text-[10px] font-bold uppercase tracking-widest text-brand-600 bg-brand-50 dark:bg-brand-500/10 dark:text-brand-400 border-x border-brand-200 dark:border-brand-500/30"
+                >
+                  ⚙ Hasil Model ML
+                </th>
+                {/* Kolom Data Mentah Karyawan */}
+                <th
+                  colSpan={RAW_COUNT}
+                  className="px-4 py-1.5 text-center text-[10px] font-bold uppercase tracking-widest text-gray-500 bg-gray-50 dark:bg-white/[0.02] dark:text-gray-400"
+                >
+                  Data Karyawan
+                </th>
+              </tr>
+              {/* Baris 2: Label kolom individual */}
               <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-white/[0.02]">
                 {COLUMNS.map((col) => (
                   <th
                     key={String(col.key)}
                     onClick={() => col.sortable && handleSort(String(col.key))}
-                    className={`whitespace-nowrap px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 ${
+                    className={`whitespace-nowrap px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider ${
+                      col.group === 'ml'
+                        ? 'text-brand-500 bg-brand-50/60 dark:bg-brand-500/[0.05] dark:text-brand-400'
+                        : 'text-gray-500 dark:text-gray-400'
+                    } ${
                       col.sortable ? 'cursor-pointer hover:text-gray-800 dark:hover:text-white' : ''
                     } ${col.className ?? ''}`}
                   >

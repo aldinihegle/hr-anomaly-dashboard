@@ -22,6 +22,3 @@ backend/data/
 # IDEs
 .vscode/
 .idea/
-
-# Model outputs
-model/outputs/

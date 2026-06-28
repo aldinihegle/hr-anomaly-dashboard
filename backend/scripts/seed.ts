@@ -77,6 +77,7 @@ const COL_MAP: Record<string, keyof EmployeeAnomaly> = {
   Gender: 'gender', JobInvolvement: 'jobInvolvement', JobLevel: 'jobLevel',
   JobRole: 'jobRole', JobSatisfaction: 'jobSatisfaction',
   MaritalStatus: 'maritalStatus', MonthlyIncome: 'monthlyIncome',
+  DailyRate: 'dailyRate', HourlyRate: 'hourlyRate', MonthlyRate: 'monthlyRate',
   NumCompaniesWorked: 'numCompaniesWorked', OverTime: 'overTime',
   PercentSalaryHike: 'percentSalaryHike', PerformanceRating: 'performanceRating',
   RelationshipSatisfaction: 'relationshipSatisfaction', StockOptionLevel: 'stockOptionLevel',
@@ -90,10 +91,11 @@ const COL_MAP: Record<string, keyof EmployeeAnomaly> = {
 
 const NUMERIC_FIELDS = new Set<keyof EmployeeAnomaly>([
   'age', 'distanceFromHome', 'education', 'environmentSatisfaction', 'jobInvolvement',
-  'jobLevel', 'jobSatisfaction', 'monthlyIncome', 'numCompaniesWorked', 'percentSalaryHike',
-  'performanceRating', 'relationshipSatisfaction', 'stockOptionLevel', 'totalWorkingYears',
-  'trainingTimesLastYear', 'workLifeBalance', 'yearsAtCompany', 'yearsInCurrentRole',
-  'yearsSinceLastPromotion', 'yearsWithCurrManager', 'anomalyScoreIf',
+  'jobLevel', 'jobSatisfaction', 'monthlyIncome', 'dailyRate', 'hourlyRate', 'monthlyRate',
+  'numCompaniesWorked', 'percentSalaryHike', 'performanceRating', 'relationshipSatisfaction', 
+  'stockOptionLevel', 'totalWorkingYears', 'trainingTimesLastYear', 'workLifeBalance', 
+  'yearsAtCompany', 'yearsInCurrentRole', 'yearsSinceLastPromotion', 'yearsWithCurrManager', 
+  'anomalyScoreIf',
 ]);
 
 // ── Seed employees ────────────────────────────────────────────────────────
@@ -234,16 +236,62 @@ async function seedAdminUser(ds: DataSource) {
   }
 }
 
+async function seedTestUsers(ds: DataSource) {
+  const repo = ds.getRepository(User);
+  let count = 0;
+  for (let i = 1; i <= 10; i++) {
+    const email = `user${i}@test.com`;
+    const existing = await repo.findOne({ where: { email } });
+    if (!existing) {
+      const u = new User();
+      u.name = `Test User ${i}`;
+      u.email = email;
+      u.password = await bcrypt.hash(`user#test${i}`, 10);
+      u.role = 'user';
+      await repo.save(u);
+      count++;
+    }
+  }
+  if (count > 0) {
+    console.log(`✅  Seeded ${count} test users (user1@test.com - user10@test.com)`);
+  }
+}
+
+async function clearData(ds: DataSource) {
+  console.log('🧹  Clearing existing data to prevent duplicates...');
+  const schema = process.env.DB_SCHEMA || 'public';
+  await ds.query(`TRUNCATE TABLE "${schema}"."employee_anomalies" RESTART IDENTITY CASCADE`);
+  await ds.query(`TRUNCATE TABLE "${schema}"."shap_local" RESTART IDENTITY CASCADE`);
+  await ds.query(`TRUNCATE TABLE "${schema}"."shap_global_importance" RESTART IDENTITY CASCADE`);
+  await ds.query(`TRUNCATE TABLE "${schema}"."master_employees" RESTART IDENTITY CASCADE`);
+  console.log('✅  Data cleared');
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────
 async function main() {
   await ds.initialize();
   console.log('🔌  Database connected');
 
-  await seedMasterEmployees(ds);
-  await seedAdminUser(ds);
-  await seedEmployees(ds);
-  await seedShapLocal(ds);
-  await seedShap(ds);
+  const args = process.argv.slice(2);
+  const command = args.find(a => !a.startsWith('--')) || 'all';
+
+  console.log(`🚀  Running seed command: ${command}`);
+
+  if (command === 'clear' || command === 'all') {
+    await clearData(ds);
+  }
+  if (command === 'master' || command === 'all') {
+    await seedMasterEmployees(ds);
+  }
+  if (command === 'users' || command === 'all') {
+    await seedAdminUser(ds);
+    await seedTestUsers(ds);
+  }
+  if (command === 'ml' || command === 'all') {
+    await seedEmployees(ds);
+    await seedShapLocal(ds);
+    await seedShap(ds);
+  }
 
   await ds.destroy();
   console.log('🎉  Seeding complete!');

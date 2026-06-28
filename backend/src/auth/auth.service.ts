@@ -13,12 +13,12 @@ export class AuthService {
   async login(email: string, pass: string) {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Email tidak terdaftar');
     }
 
     const isMatch = await bcrypt.compare(pass, user.password);
     if (!isMatch) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Password salah');
     }
 
     const payload = { sub: user.id, email: user.email, role: user.role };
@@ -29,7 +29,24 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
+        onboardingDone: user.onboardingDone,
       }
+    };
+  }
+
+  async markOnboardingDone(userId: number) {
+    return this.usersService.markOnboardingDone(userId);
+  }
+
+  async getMe(userId: number) {
+    const user = await this.usersService.findById(userId);
+    if (!user) throw new UnauthorizedException('User not found');
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      onboardingDone: user.onboardingDone,
     };
   }
 }

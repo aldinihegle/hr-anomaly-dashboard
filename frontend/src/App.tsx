@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import AppLayout from './layout/AppLayout';
-import { getSummary, getShapGlobal, getEmployees } from './api';
+import { getSummary, getShapGlobal, getEmployees, getMe, markOnboardingDone } from './api';
 import type { Summary, ShapFeature, EmployeeAnomaly } from './types';
 import StatsCard from './components/ui/StatsCard';
 import Section from './components/ui/Section';
@@ -9,9 +9,10 @@ import ShapBarChart from './components/charts/ShapBarChart';
 import ScoreHistogram from './components/charts/ScoreHistogram';
 import ShapLocalPanel from './components/charts/ShapLocalPanel';
 import AnomalyTable from './components/tables/AnomalyTable';
+import EmployeeRawTable from './components/tables/EmployeeRawTable';
 import AddEmployeePage from './components/ui/AddEmployeePage';
 
-import { Users, AlertTriangle, CheckCircle, BarChart2, Plus, ArrowLeft } from 'lucide-react';
+import { Users, AlertTriangle, CheckCircle, BarChart2, Plus } from 'lucide-react';
 
 import Login from './components/ui/Login';
 import Onboarding from './components/ui/Onboarding';
@@ -19,9 +20,17 @@ import { toast } from 'sonner';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(
-    localStorage.getItem('onboarding_done') === 'true'
-  );
+  const [isInitializing, setIsInitializing] = useState(isAuthenticated);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+  
+  const getUserId = () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      return userStr ? JSON.parse(userStr).id : '';
+    } catch {
+      return '';
+    }
+  };
   
   // Routing state
   const [currentHash, setCurrentHash] = useState(window.location.hash || '#overview');
@@ -40,6 +49,34 @@ export default function App() {
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
+
+  useEffect(() => {
+    if (currentHash === '#onboarding') {
+      const userId = getUserId();
+      if (userId) localStorage.setItem(`onboarding_done_${userId}`, 'false');
+      setHasCompletedOnboarding(false);
+      window.location.hash = '#overview';
+    }
+  }, [currentHash]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      setIsInitializing(true);
+      getMe().then(user => {
+        localStorage.setItem('user', JSON.stringify(user));
+        setHasCompletedOnboarding(user.onboardingDone === true);
+      }).catch(e => {
+        if (e?.response?.status === 401) {
+          localStorage.removeItem('token');
+          setIsAuthenticated(false);
+        }
+      }).finally(() => {
+        setIsInitializing(false);
+      });
+    } else {
+      setIsInitializing(false);
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -93,19 +130,27 @@ export default function App() {
     setScoreRange(null);
   };
 
-  if (!hasCompletedOnboarding) {
+  if (isInitializing) {
     return (
-      <Onboarding 
-        onComplete={() => {
-          localStorage.setItem('onboarding_done', 'true');
-          setHasCompletedOnboarding(true);
-        }} 
-      />
+      <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
+      </div>
     );
   }
 
   if (!isAuthenticated) {
     return <Login onSuccess={() => setIsAuthenticated(true)} />;
+  }
+
+  if (!hasCompletedOnboarding) {
+    return (
+      <Onboarding 
+        onComplete={() => {
+          markOnboardingDone().catch(console.error);
+          setHasCompletedOnboarding(true);
+        }} 
+      />
+    );
   }
 
   // Define Page Titles
@@ -115,7 +160,8 @@ export default function App() {
       case '#risiko': return 'Distribusi Risiko';
       case '#shap': return 'SHAP Global Analysis';
       case '#histogram': return 'Histogram Skor Anomali';
-      case '#tabel': return 'Evaluasi Karyawan';
+      case '#karyawan': return 'Data Karyawan';
+      case '#tabel': return 'Analisis Anomali';
       case '#tambah': return 'Tambah Data Karyawan';
       default: return 'Dashboard Overview';
     }
@@ -136,15 +182,7 @@ export default function App() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {currentHash === '#tambah' ? (
-            <button
-              onClick={() => window.location.hash = '#overview'}
-              className="inline-flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700"
-            >
-              <ArrowLeft className="size-4" />
-              Kembali
-            </button>
-          ) : (
+          {currentHash !== '#tambah' && (
             <button
               onClick={() => window.location.hash = '#tambah'}
               className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-brand-500/20 transition hover:bg-brand-600 hover:-translate-y-0.5 dark:bg-brand-600 dark:hover:bg-brand-500"
@@ -159,23 +197,23 @@ export default function App() {
       {/* OVERVIEW PAGE */}
       {(currentHash === '#overview' || currentHash === '') && (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <section id="overview" className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatsCard label="Total Karyawan Dipantau" value={stats?.total} icon={<Users className="size-6" />} color="default" />
+          <section id="overview" className="mb-8 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+            <StatsCard label="Total Karyawan Dipantau" value={stats?.total} icon={<Users className="size-5 md:size-6" />} color="default" />
             <StatsCard
               label="Risiko Tinggi" value={byRisk('tinggi')} sub="Butuh tinjauan segera"
-              icon={<AlertTriangle className="size-6" />} color="tinggi"
+              icon={<AlertTriangle className="size-5 md:size-6" />} color="tinggi"
               onClick={() => handleRiskCardClick('tinggi')}
               active={activeRisk === 'tinggi'}
             />
             <StatsCard
               label="Risiko Sedang" value={byRisk('sedang')} sub="Perlu mulai dipantau"
-              icon={<BarChart2 className="size-6" />} color="sedang"
+              icon={<BarChart2 className="size-5 md:size-6" />} color="sedang"
               onClick={() => handleRiskCardClick('sedang')}
               active={activeRisk === 'sedang'}
             />
             <StatsCard
               label="Risiko Rendah" value={byRisk('rendah')} sub="Kondisi stabil & normal"
-              icon={<CheckCircle className="size-6" />} color="rendah"
+              icon={<CheckCircle className="size-5 md:size-6" />} color="rendah"
               onClick={() => handleRiskCardClick('rendah')}
               active={activeRisk === 'rendah'}
             />
@@ -308,7 +346,19 @@ export default function App() {
         </div>
       )}
 
-      {/* TABEL PAGE */}
+      {/* KARYAWAN PAGE — Data Mentah */}
+      {currentHash === '#karyawan' && (
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <Section
+            title="Data Karyawan"
+            desc="Data mentah seluruh karyawan sebelum diproses oleh model ML. Tidak mengandung kolom skor anomali atau kategori risiko."
+          >
+            <EmployeeRawTable />
+          </Section>
+        </div>
+      )}
+
+      {/* TABEL PAGE — Hasil Analisis Anomali */}
       {currentHash === '#tabel' && (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <Section

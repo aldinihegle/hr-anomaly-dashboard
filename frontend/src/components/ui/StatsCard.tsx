@@ -24,22 +24,22 @@ export default function StatsCard({ label, value, sub, color = 'default', icon, 
   return (
     <div
       onClick={onClick}
-      className={`rounded-2xl border bg-white p-5 transition dark:bg-white/[0.03] md:p-6 ${
+      className={`rounded-2xl border bg-white p-4 sm:p-5 md:p-6 transition dark:bg-white/[0.03] ${
         active
           ? 'border-brand-500 ring-2 ring-brand-500/20 dark:border-brand-500'
           : 'border-gray-200 dark:border-gray-800'
       } ${onClick ? 'cursor-pointer hover:shadow-theme-md' : ''}`}
     >
-      <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${ICON_BG[color]}`}>
+      <div className={`flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-xl ${ICON_BG[color]}`}>
         {icon ?? DEFAULT_ICON}
       </div>
-      <div className="mt-5 flex items-end justify-between">
+      <div className="mt-4 md:mt-5 flex items-end justify-between">
         <div>
-          <span className="text-sm text-gray-500 dark:text-gray-400 font-jakarta">{label}</span>
-          <h4 className="mt-2 text-4xl font-extrabold text-gray-800 dark:text-white/90">
+          <span className="text-xs md:text-sm text-gray-500 dark:text-gray-400 font-jakarta">{label}</span>
+          <h4 className="mt-1 md:mt-2 text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-800 dark:text-white/90">
             {value ?? '—'}
           </h4>
-          {sub && <p className="mt-1 text-xs text-gray-400">{sub}</p>}
+          {sub && <p className="mt-0.5 md:mt-1 text-[10px] sm:text-xs text-gray-400 leading-tight">{sub}</p>}
         </div>
         {trend && (
           <span

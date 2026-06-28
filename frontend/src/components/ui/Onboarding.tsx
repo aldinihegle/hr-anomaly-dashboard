@@ -16,53 +16,53 @@ const SLIDES = [
     color: 'brand'
   },
   {
-    title: 'Data Sebagai Landasan',
-    subtitle: 'Standarisasi Objektif & Komprehensif',
-    desc: 'Kami menganalisis dataset historis yang utuh (seperti Overtime, Kepuasan Kerja, Jarak Rumah, dll) untuk memahami pola "normal" yang spesifik di lingkungan kerja Anda.',
+    title: 'Mempelajari Standar Normal Perusahaan Anda',
+    subtitle: 'Analisis Data Objektif & Menyeluruh',
+    desc: 'Kami menganalisis data historis karyawan secara komprehensif (seperti pola lembur, kepuasan kerja, hingga jarak rumah) untuk memahami karakteristik kerja yang spesifik di perusahaan Anda.',
     features: [
-      'Data identifier spesifik (seperti EmployeeNumber) dibuang secara otomatis agar analisis 100% rahasia dan objektif.',
-      'Setiap fitur kategorikal diubah menjadi format angka (One-Hot Encoding).',
-      'Data dinormalisasi (StandardScaler) agar fitur bernilai besar tidak mendominasi.',
-      'Mempelajari lebih dari sekadar KPI, tetapi melihat konteks profil secara menyeluruh.'
+      'Informasi identitas pribadi disamarkan secara otomatis sehingga analisis berjalan rahasia dan objektif.',
+      'Beragam informasi profil karyawan diolah secara cermat agar sistem dapat mengenali pola yang kompleks.',
+      'Bobot penilaian disetarakan sehingga tidak ada satu faktor pun yang mendominasi hasil akhir secara tidak wajar.',
+      'Sistem tidak hanya melihat angka target kerja (KPI), melainkan menilai situasi keseharian karyawan secara utuh.'
     ],
     icon: <Database className="w-12 h-12 text-slate-500" />,
     color: 'slate'
   },
   {
-    title: 'Mesin Deteksi: Isolation Forest',
-    subtitle: 'Unsupervised Machine Learning',
-    desc: 'Jantung dari sistem ini adalah algoritma Isolation Forest. Alih-alih memprofilkan karyawan "normal", algoritma ini bekerja dengan cara "mengisolasi" profil yang aneh dan tidak wajar.',
+    title: 'Mesin Pemantau Cerdas',
+    subtitle: 'Deteksi Dini Pola Tidak Biasa',
+    desc: 'Inti dari sistem ini adalah mesin analitik yang secara proaktif mencari karyawan dengan situasi kerja yang menyimpang dari tren umum, bukan sekadar membandingkan rata-rata.',
     features: [
-      'Berjalan sepenuhnya secara unsupervised (tanpa memerlukan label data manual).',
-      'Profil yang paling cepat terisolasi dalam pohon keputusan akan mendapat Anomaly Score tertinggi.',
-      'Sangat efektif menemukan data pencilan (outliers) di lingkungan data berdimensi tinggi.',
-      'Skor mentah dikonversi ketat ke skala 0.0 hingga 1.0 agar sangat mudah dibaca.'
+      'Beroperasi secara otomatis mempelajari pola organisasi tanpa perlu penyetelan parameter manual yang merepotkan.',
+      'Karyawan dengan kombinasi profil paling tidak wajar dan berisiko akan segera memicu peringatan utama.',
+      'Sangat tanggap menemukan situasi khusus di tengah banyaknya faktor penilaian kerja yang saling berkaitan.',
+      'Hasil evaluasi disajikan dalam skala penilaian yang sederhana dan mudah dibaca oleh manajemen.'
     ],
     icon: <BrainCircuit className="w-12 h-12 text-amber-500" />,
     color: 'amber'
   },
   {
-    title: 'Kategori Risiko Terukur',
-    subtitle: 'Persentil P90 & P95 (MCCV)',
-    desc: 'Untuk menghindari peringatan palsu, skor anomali [0,1] dikategorikan berdasarkan persentil ambang batas ketat yang ditetapkan melalui evaluasi statistik mendalam.',
+    title: 'Kategori Tingkat Risiko',
+    subtitle: 'Fokus Pada Prioritas Utama',
+    desc: 'Untuk mencegah peringatan palsu, skor penilaian dikelompokkan ke dalam kategori prioritas menggunakan ambang batas evaluasi yang ketat.',
     features: [
-      'Risiko Rendah: Skor di bawah persentil 90 (P90). Karyawan berkinerja normal.',
-      'Risiko Sedang: Skor antara P90 hingga P95. Profil menunjukkan anomali minor yang patut dipantau.',
-      'Risiko Tinggi: Skor di atas persentil 95 (P95). Segelintir karyawan (Top 5%) dengan anomali terekstrem.',
-      'Ambang batas ini memastikan Anda hanya fokus pada kasus yang benar-benar mendesak.'
+      'Risiko Rendah: Karyawan dengan situasi normal dan selaras dengan pola kerja pada umumnya.',
+      'Risiko Sedang: Profil mulai menunjukkan gejala tidak biasa (potensi kelelahan atau stagnasi) yang perlu dipantau.',
+      'Risiko Tinggi: Segelintir kecil karyawan dengan kondisi paling mencolok yang membutuhkan intervensi HR segera.',
+      'Sistem pengelompokan ini memastikan waktu Anda hanya tercurah untuk menyelesaikan masalah yang benar-benar relevan.'
     ],
     icon: <AlertTriangle className="w-12 h-12 text-rose-500" />,
     color: 'rose'
   },
   {
-    title: 'Transparan dengan SHAP',
-    subtitle: 'AI Bukan Lagi Kotak Hitam',
-    desc: 'Kami tidak sekadar memberikan label. Sistem menggunakan Surrogate XGBoost dan analisis TreeSHAP untuk merinci persis mengapa seseorang ditandai sebagai anomali.',
+    title: 'Transparansi Penilaian',
+    subtitle: 'Keputusan Berbasis Alasan Jelas',
+    desc: 'Sistem ini tidak beroperasi sebagai kotak hitam yang hanya memberi skor. Anda akan selalu mendapatkan rincian alasan jelas mengapa seorang karyawan membutuhkan perhatian ekstra.',
     features: [
-      'Menghasilkan kontribusi nilai (SHAP Value) untuk setiap fitur per karyawan.',
-      'Melihat dengan jelas faktor positif yang menahan risiko, dan faktor negatif yang memicu risiko.',
-      'Tingkat presisi penjelasan (Fidelity) telah divalidasi > 80% dengan Monte Carlo Cross-Validation.',
-      'Pengambilan keputusan 100% didukung transparansi data, bukan tebakan mesin.'
+      'Sistem menjabarkan porsi pengaruh dari masing-masing kondisi (seperti kompensasi, atasan, atau masa kerja).',
+      'Membedakan dengan jelas mana faktor yang membantu menekan masalah dan mana faktor yang memicu risiko anomali.',
+      'Tingkat keakuratan dan konsistensi penjelasan telah divalidasi tinggi untuk memastikan kualitas informasi.',
+      'Rekomendasi yang diberikan didukung oleh fakta objektif, sehingga Anda dapat mengambil keputusan dengan lebih yakin.'
     ],
     icon: <Fingerprint className="w-12 h-12 text-emerald-500" />,
     color: 'emerald'

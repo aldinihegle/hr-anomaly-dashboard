@@ -28,8 +28,23 @@ export default function AddEmployeePage({ onSuccess }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<EmployeeAnomaly | null>(null);
 
-  const set = <K extends keyof CreateEmployeePayload>(key: K, value: CreateEmployeePayload[K]) =>
-    setForm((f) => ({ ...f, [key]: value }));
+  const set = <K extends keyof CreateEmployeePayload>(key: K, value: CreateEmployeePayload[K]) => {
+    setForm((f) => {
+      const next = { ...f, [key]: value };
+      
+      if (key === 'hourlyRate') {
+        if (typeof value === 'number') {
+          next.dailyRate = value * 8;
+          next.monthlyRate = value * 160;
+        } else {
+          next.dailyRate = '' as any;
+          next.monthlyRate = '' as any;
+        }
+      }
+      
+      return next;
+    });
+  };
 
   const numField = (key: keyof CreateEmployeePayload, label: string, min: number, max: number, placeholder?: string) => (
     <div>
@@ -88,7 +103,22 @@ export default function AddEmployeePage({ onSuccess }: Props) {
       
       const missing = requiredFields.filter(f => form[f] === undefined || form[f] === '');
       if (missing.length > 0) {
-        throw new Error(`Mohon lengkapi seluruh form data. Masih ada form yang kosong atau belum dipilih.`);
+        const FIELD_NAMES: Record<string, string> = {
+          age: 'Usia', businessTravel: 'Perjalanan Dinas', department: 'Departemen',
+          distanceFromHome: 'Jarak ke Kantor', education: 'Tingkat Pendidikan', educationField: 'Bidang Studi',
+          environmentSatisfaction: 'Kepuasan Lingkungan', gender: 'Gender', jobInvolvement: 'Keterlibatan Kerja',
+          jobLevel: 'Level Pekerjaan', jobRole: 'Jabatan', jobSatisfaction: 'Kepuasan Kerja',
+          maritalStatus: 'Status Pernikahan', monthlyIncome: 'Pendapatan Bulanan', dailyRate: 'Tarif Harian',
+          hourlyRate: 'Tarif Per Jam', monthlyRate: 'Tarif Bulanan', numCompaniesWorked: 'Jumlah Perusahaan Sebelumnya',
+          overTime: 'Status Lembur', percentSalaryHike: 'Kenaikan Gaji', performanceRating: 'Rating Kinerja',
+          relationshipSatisfaction: 'Kepuasan Relasi', stockOptionLevel: 'Level Opsi Saham',
+          totalWorkingYears: 'Total Pengalaman', trainingTimesLastYear: 'Jumlah Pelatihan',
+          workLifeBalance: 'Work-Life Balance', yearsAtCompany: 'Lama di Perusahaan',
+          yearsInCurrentRole: 'Lama di Posisi Saat Ini', yearsSinceLastPromotion: 'Waktu Sejak Promosi',
+          yearsWithCurrManager: 'Lama dengan Manajer'
+        };
+        const missingNames = missing.map(f => FIELD_NAMES[f] || f).join(',');
+        throw new Error(`MISSING:${missingNames}`);
       }
 
       const emp = await createEmployee(form as CreateEmployeePayload);
@@ -180,10 +210,14 @@ export default function AddEmployeePage({ onSuccess }: Props) {
             <div id="add-emp-form" className="block">
               {error && (
                 <div className="mb-8 rounded-xl border border-error-200 bg-error-50 px-5 py-4 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400 animate-in fade-in">
-                  <div className="font-bold mb-1">Terjadi Kesalahan:</div>
+                  <div className="font-bold mb-2">
+                    {error.startsWith('MISSING:') 
+                      ? 'Mohon lengkapi data yang masih kosong:' 
+                      : 'Terjadi Kesalahan:'}
+                  </div>
                   <ul className="list-disc pl-5 space-y-1">
-                    {error.split(',').map((err, i) => (
-                      <li key={i}>{err.trim()}</li>
+                    {error.replace('MISSING:', '').split(',').map((err, i) => (
+                      err.trim() ? <li key={i}>{err.trim()}</li> : null
                     ))}
                   </ul>
                 </div>
@@ -269,17 +303,17 @@ export default function AddEmployeePage({ onSuccess }: Props) {
                         'Sales Representative', 'Research Director', 'Human Resources',
                       ])}
                       {numField('jobLevel', 'Level Jabatan (1-5)', 1, 5, 'Contoh: 2')}
-                      {numField('dailyRate', 'Tarif Harian ($)', 100, 2000, 'Contoh: 800')}
                       {numField('hourlyRate', 'Tarif Per Jam ($)', 30, 100, 'Contoh: 65')}
-                      {numField('monthlyRate', 'Tarif Bulanan ($)', 2000, 30000, 'Contoh: 15000')}
+                      {numField('dailyRate', 'Tarif Harian ($)', 100, 2000, 'Contoh: 520')}
+                      {numField('monthlyRate', 'Tarif Bulanan ($)', 2000, 30000, 'Contoh: 10400')}
                       
                       <div className="md:col-span-2">
                         <label className={labelCls}>Frekuensi Perjalanan Dinas</label>
                         <div className="flex h-[46px] items-center gap-6">
                           {[
+                            { v: 'Non-Travel', l: 'Tidak Pernah' },
                             { v: 'Travel_Rarely', l: 'Jarang (Rarely)' },
                             { v: 'Travel_Frequently', l: 'Sering (Frequently)' },
-                            { v: 'Non-Travel', l: 'Tidak Pernah' },
                           ].map((opt) => (
                             <label key={opt.v} className="flex items-center gap-1.5 cursor-pointer">
                               <input
@@ -407,11 +441,11 @@ export default function AddEmployeePage({ onSuccess }: Props) {
         {/* Footer Actions */}
         {!result && (
           <div className="border-t border-gray-100 bg-gray-50/80 px-6 sm:px-10 py-6 dark:border-gray-800 dark:bg-gray-900/80">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
               <button
                 type="button"
                 onClick={step === 1 ? () => window.location.hash = '#overview' : handlePrev}
-                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3.5 text-sm font-bold text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 shadow-sm"
+                className="inline-flex w-full sm:w-auto justify-center items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3.5 text-sm font-bold text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 shadow-sm"
               >
                 {step === 1 ? (
                   'Batal & Kembali'
@@ -426,7 +460,7 @@ export default function AddEmployeePage({ onSuccess }: Props) {
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-8 py-3.5 text-sm font-bold text-white shadow-xl shadow-brand-500/30 transition hover:bg-brand-600 hover:-translate-y-0.5"
+                  className="inline-flex w-full sm:w-auto justify-center items-center gap-2 rounded-xl bg-brand-500 px-8 py-3.5 text-sm font-bold text-white shadow-xl shadow-brand-500/30 transition hover:bg-brand-600 hover:-translate-y-0.5"
                 >
                   Langkah Selanjutnya <ChevronRight className="size-4.5" />
                 </button>
@@ -435,7 +469,7 @@ export default function AddEmployeePage({ onSuccess }: Props) {
                   type="button"
                   onClick={handleSubmit}
                   disabled={loading}
-                  className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-8 py-3.5 text-sm font-bold text-white shadow-xl shadow-brand-500/30 transition hover:bg-brand-600 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+                  className="inline-flex w-full sm:w-auto justify-center items-center gap-2 rounded-xl bg-brand-500 px-8 py-3.5 text-sm font-bold text-white shadow-xl shadow-brand-500/30 transition hover:bg-brand-600 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
                 >
                   {loading ? (
                     <>

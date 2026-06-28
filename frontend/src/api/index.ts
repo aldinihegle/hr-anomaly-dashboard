@@ -102,4 +102,10 @@ export const createEmployee = (data: CreateEmployeePayload): Promise<EmployeeAno
 export const login = (email: string, password: string): Promise<{ access_token: string; user: any }> =>
   api.post<{ access_token: string; user: any }>('/auth/login', { email, password }).then((r) => r.data);
 
+export const getMe = (): Promise<any> =>
+  api.get('/auth/me').then((r) => r.data);
+
+export const markOnboardingDone = (): Promise<any> =>
+  api.post('/auth/onboarding-done').then((r) => r.data);
+
 export default api;
