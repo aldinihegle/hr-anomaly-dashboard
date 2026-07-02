@@ -95,9 +95,9 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-white dark:bg-zinc-950 font-sans overflow-hidden">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-white dark:bg-zinc-950 font-sans overflow-y-auto overflow-x-hidden lg:overflow-hidden">
       {/* Left Panel - Navigation & Context */}
-      <div className="w-full lg:w-[40%] flex flex-col justify-between p-8 sm:p-12 xl:p-16 relative z-10 bg-white dark:bg-zinc-950 border-r border-slate-100 dark:border-zinc-900">
+      <div className="w-full lg:w-[40%] flex flex-col justify-between p-8 sm:p-12 xl:p-16 relative z-10 bg-white dark:bg-zinc-950 border-r border-slate-100 dark:border-zinc-900 min-h-screen lg:min-h-0">
         
         {/* Header - Synced with Login.tsx */}
         <div className="flex items-center gap-3">
@@ -133,6 +133,31 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
           <p className="text-xl text-slate-500 dark:text-slate-400 font-inter font-medium leading-relaxed">
             {SLIDES[step].subtitle}
           </p>
+
+          {/* Mobile Description & Features */}
+          <div className="lg:hidden mt-8">
+            <p className="text-base text-slate-600 dark:text-slate-300 font-inter leading-relaxed mb-6">
+              {SLIDES[step].desc}
+            </p>
+            <div className="space-y-4 mb-4">
+              {SLIDES[step].features.map((feature, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className={`mt-0.5 shrink-0 ${
+                    SLIDES[step].color === 'brand' ? 'text-brand-500' :
+                    SLIDES[step].color === 'slate' ? 'text-slate-500' :
+                    SLIDES[step].color === 'amber' ? 'text-amber-500' :
+                    SLIDES[step].color === 'rose' ? 'text-rose-500' :
+                    'text-emerald-500'
+                  }`}>
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                  <span className="text-sm text-slate-700 dark:text-slate-300 font-inter leading-relaxed">
+                    {feature}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center gap-4 mt-8">

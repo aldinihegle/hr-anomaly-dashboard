@@ -515,12 +515,12 @@ export default function ShapLocalPanel({ employee, onClose }: Props) {
             <>
               <div>
                 <h3 className="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-200">
-                  Faktor Penentu Anomali
+                  Analisis Akar Masalah (Root Cause)
                 </h3>
                 <p className="mb-3 text-xs leading-relaxed text-gray-400">
-                  Faktor di bawah menjelaskan mengapa kombinasi atribut karyawan ini terdeteksi langka dibandingkan 1.470 profil lainnya.&nbsp;
-                  <span className="font-medium text-error-500">Merah ↑</span> = mendorong skor anomali lebih tinggi ·&nbsp;
-                  <span className="font-medium text-brand-500">Biru ↓</span> = menekan ke arah lebih normal.
+                  Grafik ini membantu HR mengetahui alasan spesifik mengapa karyawan ini terdeteksi tidak wajar. Fokuslah pada faktor di urutan teratas (misal: lembur tinggi) saat sesi evaluasi atau coaching.&nbsp;
+                  <span className="font-medium text-error-500">Merah ↑</span> = Memicu Risiko ·&nbsp;
+                  <span className="font-medium text-brand-500">Biru ↓</span> = Meredam Risiko.
                 </p>
 
                 {/* Top 5 dengan reasoning kontekstual */}

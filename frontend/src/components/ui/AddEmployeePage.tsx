@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { toast } from 'sonner';
 import { createEmployee, type CreateEmployeePayload } from '../../api';
 import type { EmployeeAnomaly } from '../../types';
 import RiskBadge from './RiskBadge';
@@ -25,7 +26,6 @@ export default function AddEmployeePage({ onSuccess }: Props) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<Partial<CreateEmployeePayload>>(DEFAULTS);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<EmployeeAnomaly | null>(null);
 
   const set = <K extends keyof CreateEmployeePayload>(key: K, value: CreateEmployeePayload[K]) => {
@@ -78,32 +78,16 @@ export default function AddEmployeePage({ onSuccess }: Props) {
     </div>
   );
 
-  const handleNext = () => setStep((s) => Math.min(s + 1, 4));
-  const handlePrev = () => setStep((s) => Math.max(s - 1, 1));
+  const validateStep = (s: number) => {
+    let required: (keyof CreateEmployeePayload)[] = [];
+    if (s === 1) required = ['age', 'gender', 'maritalStatus', 'distanceFromHome', 'education', 'educationField'];
+    else if (s === 2) required = ['department', 'jobRole', 'jobLevel', 'hourlyRate', 'dailyRate', 'monthlyRate', 'businessTravel', 'overTime', 'monthlyIncome', 'percentSalaryHike', 'stockOptionLevel'];
+    else if (s === 3) required = ['jobSatisfaction', 'environmentSatisfaction', 'relationshipSatisfaction', 'workLifeBalance', 'jobInvolvement', 'performanceRating', 'attrition'];
+    else if (s === 4) required = ['totalWorkingYears', 'numCompaniesWorked', 'yearsAtCompany', 'yearsInCurrentRole', 'yearsSinceLastPromotion', 'yearsWithCurrManager', 'trainingTimesLastYear'];
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (step < 4) {
-      handleNext();
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const requiredFields: (keyof CreateEmployeePayload)[] = [
-        'age', 'businessTravel', 'department', 'distanceFromHome', 'education',
-        'educationField', 'environmentSatisfaction', 'gender', 'jobInvolvement',
-        'jobLevel', 'jobRole', 'jobSatisfaction', 'maritalStatus', 'monthlyIncome',
-        'dailyRate', 'hourlyRate', 'monthlyRate', 'numCompaniesWorked', 'overTime',
-        'percentSalaryHike', 'performanceRating', 'relationshipSatisfaction',
-        'stockOptionLevel', 'totalWorkingYears', 'trainingTimesLastYear',
-        'workLifeBalance', 'yearsAtCompany', 'yearsInCurrentRole',
-        'yearsSinceLastPromotion', 'yearsWithCurrManager'
-      ];
-      
-      const missing = requiredFields.filter(f => form[f] === undefined || form[f] === '');
-      if (missing.length > 0) {
-        const FIELD_NAMES: Record<string, string> = {
+    const missing = required.filter(f => form[f] === undefined || form[f] === '');
+    if (missing.length > 0) {
+      const FIELD_NAMES: Record<string, string> = {
           age: 'Usia', businessTravel: 'Perjalanan Dinas', department: 'Departemen',
           distanceFromHome: 'Jarak ke Kantor', education: 'Tingkat Pendidikan', educationField: 'Bidang Studi',
           environmentSatisfaction: 'Kepuasan Lingkungan', gender: 'Gender', jobInvolvement: 'Keterlibatan Kerja',
@@ -116,18 +100,58 @@ export default function AddEmployeePage({ onSuccess }: Props) {
           workLifeBalance: 'Work-Life Balance', yearsAtCompany: 'Lama di Perusahaan',
           yearsInCurrentRole: 'Lama di Posisi Saat Ini', yearsSinceLastPromotion: 'Waktu Sejak Promosi',
           yearsWithCurrManager: 'Lama dengan Manajer'
-        };
-        const missingNames = missing.map(f => FIELD_NAMES[f] || f).join(',');
-        throw new Error(`MISSING:${missingNames}`);
-      }
+      };
+      const missingNames = missing.map(f => FIELD_NAMES[f as string] || f).join(', ');
+      toast.error(`Mohon lengkapi data: ${missingNames}`);
+      return false;
+    }
+    
+    if (s === 1 && ((form.age as number) < 18 || (form.age as number) > 65)) {
+      toast.error('Rentang usia tidak valid (harus 18 - 65 tahun).');
+      return false;
+    }
+    if (s === 2 && (form.monthlyIncome as number) <= 0) {
+      toast.error('Gaji bulanan tidak valid.');
+      return false;
+    }
+    if (s === 4 && (form.totalWorkingYears as number) > ((form.age as number) - 15)) {
+      toast.error(`Total pengalaman kerja (${form.totalWorkingYears} tahun) tidak rasional dengan usia saat ini (${form.age} tahun).`);
+      return false;
+    }
 
+    return true;
+  };
+
+  const handleNext = () => {
+    if (validateStep(step)) {
+      setStep((s) => Math.min(s + 1, 4));
+      toast.success(`Tahap ${step} selesai!`);
+    }
+  };
+
+  const handlePrev = () => {
+    setStep((s) => Math.max(s - 1, 1));
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (step < 4) {
+      handleNext();
+      return;
+    }
+    if (!validateStep(4)) return;
+
+    setLoading(true);
+    setLoading(true);
+    try {
       const emp = await createEmployee(form as CreateEmployeePayload);
       setResult(emp);
+      toast.success('Pendaftaran Berhasil! Karyawan telah ditambahkan.');
       onSuccess();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } }; message?: string })
         ?.response?.data?.message ?? (err as Error).message ?? 'Gagal membuat karyawan.';
-      setError(Array.isArray(msg) ? msg.join(', ') : String(msg));
+      toast.error(Array.isArray(msg) ? msg.join(', ') : String(msg));
     } finally {
       setLoading(false);
     }
@@ -208,21 +232,6 @@ export default function AddEmployeePage({ onSuccess }: Props) {
           {/* Form */}
           {!result && (
             <div id="add-emp-form" className="block">
-              {error && (
-                <div className="mb-8 rounded-xl border border-error-200 bg-error-50 px-5 py-4 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400 animate-in fade-in">
-                  <div className="font-bold mb-2">
-                    {error.startsWith('MISSING:') 
-                      ? 'Mohon lengkapi data yang masih kosong:' 
-                      : 'Terjadi Kesalahan:'}
-                  </div>
-                  <ul className="list-disc pl-5 space-y-1">
-                    {error.replace('MISSING:', '').split(',').map((err, i) => (
-                      err.trim() ? <li key={i}>{err.trim()}</li> : null
-                    ))}
-                  </ul>
-                </div>
-              )}
-
               <div className="animate-in fade-in slide-in-from-right-8 duration-300">
                 {/* STEP 1 */}
                 {step === 1 && (
@@ -232,6 +241,30 @@ export default function AddEmployeePage({ onSuccess }: Props) {
                     </h3>
                     <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2 md:grid-cols-3">
                       {numField('age', 'Usia', 18, 65, 'Contoh: 30')}
+                      <div>
+                        <label className={labelCls}>Tingkat Pendidikan</label>
+                        <div className="relative">
+                          <select
+                            value={form.education ?? ''}
+                            onChange={(e) => set('education', Number(e.target.value))}
+                            className="w-full h-[46px] rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm text-gray-800 focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-100 dark:focus:bg-gray-900 transition-all appearance-none pr-10"
+                          >
+                            <option value="" disabled>Pilih...</option>
+                            <option value={1}>1 - Di Bawah Perguruan Tinggi</option>
+                            <option value={2}>2 - Perguruan Tinggi</option>
+                            <option value={3}>3 - Sarjana</option>
+                            <option value={4}>4 - Magister</option>
+                            <option value={5}>5 - Doktor</option>
+                          </select>
+                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500">
+                            <ChevronDown className="size-4.5" />
+                          </div>
+                        </div>
+                      </div>
+                      {selectField('educationField', 'Bidang Studi', [
+                        'Life Sciences', 'Medical', 'Marketing', 'Technical Degree', 'Human Resources', 'Other',
+                      ])}
+                      
                       <div>
                         <label className={labelCls}>Gender</label>
                         <div className="flex h-[46px] items-center gap-6">
@@ -267,24 +300,6 @@ export default function AddEmployeePage({ onSuccess }: Props) {
                         </div>
                       </div>
                       {numField('distanceFromHome', 'Jarak Rumah ke Kantor (km)', 1, 30, 'Contoh: 5')}
-                      <div>
-                        <label className={labelCls}>Tingkat Pendidikan</label>
-                        <select
-                          value={form.education ?? ''}
-                          onChange={(e) => set('education', Number(e.target.value))}
-                          className="w-full h-[46px] rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm text-gray-800 focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-100 dark:focus:bg-gray-900 transition-all appearance-none"
-                        >
-                          <option value="" disabled>Pilih...</option>
-                          <option value={1}>1 - Di Bawah Perguruan Tinggi</option>
-                          <option value={2}>2 - Perguruan Tinggi</option>
-                          <option value={3}>3 - Sarjana</option>
-                          <option value={4}>4 - Magister</option>
-                          <option value={5}>5 - Doktor</option>
-                        </select>
-                      </div>
-                      {selectField('educationField', 'Bidang Studi', [
-                        'Life Sciences', 'Medical', 'Marketing', 'Technical Degree', 'Human Resources', 'Other',
-                      ])}
                     </div>
                   </div>
                 )}

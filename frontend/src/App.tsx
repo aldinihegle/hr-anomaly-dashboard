@@ -8,10 +8,21 @@ import RiskPieChart from './components/charts/RiskPieChart';
 import ShapBarChart from './components/charts/ShapBarChart';
 import ScoreHistogram from './components/charts/ScoreHistogram';
 import ShapLocalPanel from './components/charts/ShapLocalPanel';
+import RiskProfileRadar from './components/charts/RiskProfileRadar';
+import DepartmentRiskBar from './components/charts/DepartmentRiskBar';
+import CareerStagnationScatter from './components/charts/CareerStagnationScatter';
+import TravelImpactChart from './components/charts/TravelImpactChart';
+import IncomeContextModal from './components/charts/IncomeContextModal';
+import CareerContextModal from './components/charts/CareerContextModal';
+import FeatureImpactModal from './components/charts/FeatureImpactModal';
+import WellbeingContextModal from './components/charts/WellbeingContextModal';
+import LazyChartLoader from './components/ui/LazyChartLoader';
 import AnomalyTable from './components/tables/AnomalyTable';
 import EmployeeRawTable from './components/tables/EmployeeRawTable';
 import AddEmployeePage from './components/ui/AddEmployeePage';
-
+import AgeVsIncomeScatter from './components/charts/AgeVsIncomeScatter';
+import OvertimeImpactBar from './components/charts/OvertimeImpactBar';
+import ScoreDistributionHistogram from './components/charts/ScoreDistributionHistogram';
 import { Users, AlertTriangle, CheckCircle, BarChart2, Plus } from 'lucide-react';
 
 import Login from './components/ui/Login';
@@ -38,8 +49,13 @@ export default function App() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [shap, setShap] = useState<ShapFeature[]>([]);
   const [topN, setTopN] = useState(10);
-  const [allScores, setAllScores] = useState<number[]>([]);
+  const [allEmployees, setAllEmployees] = useState<EmployeeAnomaly[]>([]);
+  const allScores = allEmployees.map(e => e.anomalyScoreIf);
   const [selectedEmp, setSelectedEmp] = useState<EmployeeAnomaly | null>(null);
+  const [selectedIncomeEmp, setSelectedIncomeEmp] = useState<EmployeeAnomaly | null>(null);
+  const [selectedCareerEmp, setSelectedCareerEmp] = useState<EmployeeAnomaly | null>(null);
+  const [selectedFeature, setSelectedFeature] = useState<any>(null);
+  const [showWellbeing, setShowWellbeing] = useState(false);
   const [activeRisk, setActiveRisk] = useState<string>('');
   const [scoreRange, setScoreRange] = useState<{ min: number; max: number } | null>(null);
   const [tableKey, setTableKey] = useState(0); // bump to force table re-fetch
@@ -98,7 +114,7 @@ export default function App() {
   useEffect(() => {
     if (!isAuthenticated) return;
     getEmployees({ perPage: 2000, sort: 'id', order: 'asc' })
-      .then((res) => setAllScores(res.items.map((e) => e.anomalyScoreIf)))
+      .then((res) => setAllEmployees(res.items))
       .catch(() => {});
   }, [isAuthenticated, tableKey]);
 
@@ -158,8 +174,8 @@ export default function App() {
     switch (currentHash) {
       case '#overview': return 'Dashboard Overview';
       case '#risiko': return 'Distribusi Risiko';
-      case '#shap': return 'SHAP Global Analysis';
-      case '#histogram': return 'Histogram Skor Anomali';
+      case '#shap': return 'Akar Masalah';
+      case '#demografi': return 'Analisis Demografi & Jabatan';
       case '#karyawan': return 'Data Karyawan';
       case '#tabel': return 'Analisis Anomali';
       case '#tambah': return 'Tambah Data Karyawan';
@@ -178,7 +194,7 @@ export default function App() {
           <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400 font-inter">
             {currentHash === '#tambah' 
               ? 'Lengkapi formulir di bawah ini untuk menambahkan dan mengevaluasi profil karyawan baru.'
-              : 'Pantau ringkasan tingkat risiko dan deteksi anomali pada profil karyawan Anda.'}
+              : `Bulan Evaluasi: ${new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(new Date())}. Pantau ringkasan status karyawan dan rekomendasi tindakan.`}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -219,17 +235,42 @@ export default function App() {
             />
           </section>
 
+          {/* Actionable Insights Panel */}
+          <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm dark:border-amber-900/50 dark:bg-amber-950/30">
+            <div className="flex items-start gap-4">
+              <div className="rounded-full bg-amber-100 p-2 text-amber-600 dark:bg-amber-900/50 dark:text-amber-400">
+                <AlertTriangle className="size-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-amber-900 dark:text-amber-100 font-jakarta mb-1">Rekomendasi Tindakan (Actionable Insights)</h3>
+                <ul className="list-disc pl-5 text-sm text-amber-800 dark:text-amber-200/80 space-y-1 font-inter">
+                  {(byRisk('tinggi') ?? 0) > 0 ? (
+                    <li>Terdapat <strong>{byRisk('tinggi')} karyawan</strong> di Zona Merah (Risiko Tinggi). <strong>Aksi:</strong> Segera jadwalkan sesi <em>1-on-1 coaching</em> atau evaluasi kinerja bulan ini.</li>
+                  ) : (
+                    <li>Tidak ada karyawan di Zona Merah saat ini. Pertahankan program retensi dan engagement yang ada.</li>
+                  )}
+                  {shap.length > 0 && (
+                    <li>Faktor yang paling dominan memicu anomali saat ini adalah <strong>{shap[0]?.feature.replace(/_/g, ' ')}</strong>. <strong>Aksi:</strong> Evaluasi kembali kebijakan terkait area ini di seluruh departemen.</li>
+                  )}
+                </ul>
+              </div>
+            </div>
+          </div>
+
           <div className="mb-8 grid grid-cols-1 gap-6 xl:grid-cols-12">
             <div className="xl:col-span-5">
-              <Section title="Distribusi Tingkat Risiko" desc="Proporsi tingkat risiko karyawan di seluruh perusahaan.">
+              <Section 
+                title="Peta Status Karyawan Saat Ini" 
+                desc="Tinggi = Butuh intervensi segera. Sedang = Mulai dipantau. Rendah = Stabil/Normal."
+              >
                 <RiskPieChart data={dist} />
               </Section>
             </div>
 
             <div className="xl:col-span-7">
               <Section
-                title="Faktor Pendorong Risiko Utama"
-                desc="Atribut kinerja yang paling dominan memicu terdeteksinya anomali."
+                title="Analisis Akar Masalah Global (Faktor Pemicu)"
+                desc="Aspek yang paling sering menjadi alasan mengapa sistem mencurigai adanya anomali pada kinerja karyawan."
                 action={
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs text-slate-500 dark:text-slate-400 font-inter">Top</span>
@@ -260,15 +301,16 @@ export default function App() {
             </Section>
           </div>
 
-          <div className="mb-4">
+          <div id="tabel" className="mb-4 scroll-mt-20">
             <Section
               title="Daftar Evaluasi Karyawan"
+              info="Tabel ini menampilkan HASIL EVALUASI dari model AI. Setiap baris berisi skor anomali dan kategori risiko karyawan (Kritis, Perhatian, Normal). Anda dapat menyaring data, mengurutkan skor tertinggi, dan yang paling penting: Klik salah satu baris untuk membuka panel Analisis Individu dan melihat faktor risiko spesifik mereka!"
               desc={
                 activeRisk
                   ? `Filter aktif: Risiko ${activeRisk}. Klik kartu metrik di atas untuk membatalkan.`
                   : scoreRange
                   ? `Filter aktif: Skor terpilih. Klik grafik di atas untuk membatalkan.`
-                  : 'Klik baris mana saja untuk melihat analisis detail individu.'
+                  : undefined
               }
             >
               <AnomalyTable
@@ -285,64 +327,130 @@ export default function App() {
 
       {/* RISIKO PAGE */}
       {currentHash === '#risiko' && (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <Section title="Distribusi Tingkat Risiko" desc="Proporsi tingkat risiko karyawan di seluruh perusahaan.">
-            <div className="max-w-3xl mx-auto py-8">
-              <RiskPieChart data={dist} />
-            </div>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+          <Section 
+            title="Korelasi Usia vs Pendapatan" 
+            info="Grafik ini (Scatter Plot) memetakan seluruh karyawan. Sumbu mendatar adalah Usia, Sumbu tegak adalah Pendapatan. Karyawan yang posisinya sangat jauh dari kerumunan (outlier) ditandai dengan warna merah. Klik titik merah untuk melihat detail gajinya."
+          >
+            <LazyChartLoader height={300} delay={150}>
+              <AgeVsIncomeScatter data={allEmployees} onDotClick={setSelectedIncomeEmp} />
+            </LazyChartLoader>
+          </Section>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <Section 
+              title="Distribusi Tingkat Risiko" 
+              info="Diagram Lingkaran (Pie Chart) ini membagi seluruh karyawan ke dalam 3 zona warna: Merah (Kritis), Kuning (Perhatian), dan Hijau (Aman). Semakin besar porsi merah, semakin banyak karyawan berisiko di perusahaan Anda."
+            >
+              <LazyChartLoader height={300} delay={250}>
+                <RiskPieChart data={dist} />
+              </LazyChartLoader>
+            </Section>
+            <Section 
+              title="Dampak Jam Lembur" 
+              info="Grafik batang bertumpuk ini membandingkan karyawan yang sering lembur vs tidak lembur. Perhatikan blok merah (Risiko Kritis): jika ia mendominasi kelompok 'Sering Lembur', maka kelelahan/burnout terbukti kuat menjadi pemicu turnover."
+            >
+              <LazyChartLoader height={300} delay={350}>
+                <OvertimeImpactBar data={allEmployees} />
+              </LazyChartLoader>
+            </Section>
+          </div>
+          <Section 
+            title="Histogram Skor Anomali" 
+            info="Histogram ini menunjukkan kepadatan skor anomali karyawan. Jika kurvanya menumpuk di sisi kiri, berarti mayoritas karyawan aman. Namun jika kurvanya bergeser atau memiliki ekor panjang ke sisi kanan (skor tinggi), perusahaan sedang dalam bahaya turnover massal."
+          >
+            <LazyChartLoader height={300} delay={450}>
+              <ScoreDistributionHistogram data={allEmployees} />
+            </LazyChartLoader>
           </Section>
         </div>
       )}
 
       {/* SHAP PAGE */}
       {currentHash === '#shap' && (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <Section
-            title="Faktor Pendorong Risiko Utama"
-            desc="Atribut kinerja yang paling dominan memicu terdeteksinya anomali."
-            action={
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-inter">Top</span>
-                {[5, 10, 15, 20].map((n) => (
-                  <button
-                    key={n}
-                    onClick={() => setTopN(n)}
-                    className={`h-7 min-w-[32px] rounded-md px-2 text-xs font-medium transition ${
-                      topN === n
-                        ? 'bg-brand-500 text-white'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10'
-                    }`}
-                  >
-                    {n}
-                  </button>
-                ))}
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <Section
+              title="Analisis Faktor Pemicu Risiko"
+              info="Grafik batang (SHAP) ini diurutkan dari atas ke bawah. Batang paling atas (paling panjang) adalah akar masalah UTAMA di perusahaan Anda yang membuat karyawan ingin keluar. Klik batangnya untuk melihat analisis detail dari AI."
+              action={
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-inter">Top</span>
+                  {[5, 10, 15, 20].map((n) => (
+                    <button
+                      key={n}
+                      onClick={() => setTopN(n)}
+                      className={`h-7 min-w-[32px] rounded-md px-2 text-xs font-medium transition ${
+                        topN === n
+                          ? 'bg-brand-500 text-white'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10'
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              }
+            >
+              <div className="py-4">
+                <LazyChartLoader height={400} delay={150}>
+                  <ShapBarChart data={shap} onBarClick={setSelectedFeature} />
+                </LazyChartLoader>
               </div>
-            }
-          >
-            <div className="max-w-5xl mx-auto py-4">
-              <ShapBarChart data={shap} />
-            </div>
-          </Section>
+            </Section>
+            <Section 
+              title="Komparasi Kesejahteraan" 
+              info="Grafik Jaring Laba-laba (Radar Chart) ini membandingkan bentuk kesejahteraan 2 kelompok karyawan. Garis merah adalah kelompok berisiko kritis. Jika jaring merah jauh lebih kecil (mengkerut ke dalam) daripada jaring hijau, artinya kelompok kritis sangat menderita/tidak sejahtera."
+              action={
+                <button
+                  onClick={() => setShowWellbeing(true)}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 transition"
+                >
+                  Analisis Detail
+                </button>
+              }
+            >
+              <div className="py-4">
+                <LazyChartLoader height={350} delay={250}>
+                  <RiskProfileRadar data={allEmployees} />
+                </LazyChartLoader>
+              </div>
+            </Section>
+          </div>
         </div>
       )}
 
-      {/* HISTOGRAM PAGE */}
-      {currentHash === '#histogram' && (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <Section
-            title="Sebaran Skor Risiko"
-            desc="Klik pada batang grafik untuk menyaring karyawan di tabel berdasarkan rentang skor tertentu."
+      {/* DEMOGRAFI PAGE */}
+      {currentHash === '#demografi' && (
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+          <Section 
+            title="Hipotesis Stagnansi Karir" 
+            info="Titik-titik ini adalah karyawan Anda. Semakin ke atas posisinya, semakin lama ia menunggu promosi (stagnan). Titik merah di posisi atas menandakan peringatan darurat: karyawan tersebut mungkin merasa dilupakan dan bersiap keluar. Klik titiknya untuk investigasi karir!"
           >
-            <div className="max-w-5xl mx-auto py-4">
-              <ScoreHistogram
-                scores={allScores}
-                p90={p90}
-                p95={p95}
-                onBarClick={handleHistogramBarClick}
-                selectedRange={scoreRange}
-              />
-            </div>
+            <LazyChartLoader height={300} delay={150}>
+              <CareerStagnationScatter data={allEmployees} onDotClick={setSelectedCareerEmp} />
+            </LazyChartLoader>
           </Section>
+          
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <Section
+              title="Risiko per Departemen"
+              info="Diagram ini membagi rasio karyawan sehat dan berisiko di setiap departemen. Cari kolom yang porsi warna merahnya paling tebal; itu adalah departemen dengan suhu manajemen paling 'panas' yang butuh sidak HR secepatnya."
+            >
+              <div className="py-2">
+                <LazyChartLoader height={300} delay={250}>
+                  <DepartmentRiskBar data={allEmployees} />
+                </LazyChartLoader>
+              </div>
+            </Section>
+            <Section 
+              title="Beban Perjalanan Dinas" 
+              info="Apakah sering pergi dinas memicu turnover? Grafik ini membandingkan karyawan yang tidak pernah dinas, jarang, hingga sangat sering. Bandingkan porsi balok merahnya di tiap kolom."
+            >
+              <LazyChartLoader height={300} delay={350}>
+                <TravelImpactChart data={allEmployees} />
+              </LazyChartLoader>
+            </Section>
+          </div>
         </div>
       )}
 
@@ -351,7 +459,7 @@ export default function App() {
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <Section
             title="Data Karyawan"
-            desc="Data mentah seluruh karyawan sebelum diproses oleh model ML. Tidak mengandung kolom skor anomali atau kategori risiko."
+            info="Tabel ini memuat rekaman murni (data mentah) dari seluruh karyawan sebelum diolah oleh AI. Halaman ini hanya menampilkan informasi demografi dan histori karir biasa, tanpa ada satupun perhitungan skor anomali. Gunakan tabel ini jika Anda sekadar ingin melihat daftar nama dan departemen."
           >
             <EmployeeRawTable />
           </Section>
@@ -363,12 +471,13 @@ export default function App() {
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <Section
             title="Daftar Evaluasi Karyawan"
+            info="Tabel ini menampilkan HASIL EVALUASI dari model AI. Setiap baris berisi skor anomali dan kategori risiko karyawan (Kritis, Perhatian, Normal). Anda dapat menyaring data, mengurutkan skor tertinggi, dan yang paling penting: Klik salah satu baris untuk membuka panel Analisis Individu dan melihat faktor risiko spesifik mereka!"
             desc={
               activeRisk
                 ? `Filter aktif: Risiko ${activeRisk}. Buka Overview untuk membatalkan.`
                 : scoreRange
                 ? `Filter aktif: Skor terpilih. Buka Histogram untuk membatalkan.`
-                : 'Klik baris mana saja untuk melihat analisis detail individu.'
+                : undefined
             }
           >
             <AnomalyTable
@@ -395,6 +504,26 @@ export default function App() {
       {/* Local SHAP modal */}
       {selectedEmp && (
         <ShapLocalPanel employee={selectedEmp} onClose={() => setSelectedEmp(null)} />
+      )}
+
+      {/* Income Context modal */}
+      {selectedIncomeEmp && (
+        <IncomeContextModal employee={selectedIncomeEmp} allEmployees={allEmployees} onClose={() => setSelectedIncomeEmp(null)} />
+      )}
+
+      {/* Career Context modal */}
+      {selectedCareerEmp && (
+        <CareerContextModal employee={selectedCareerEmp} allEmployees={allEmployees} onClose={() => setSelectedCareerEmp(null)} />
+      )}
+
+      {/* Feature Impact modal */}
+      {selectedFeature && (
+        <FeatureImpactModal feature={selectedFeature} onClose={() => setSelectedFeature(null)} />
+      )}
+
+      {/* Wellbeing Context modal */}
+      {showWellbeing && (
+        <WellbeingContextModal data={allEmployees} onClose={() => setShowWellbeing(false)} />
       )}
 
       {/* Disclaimer */}

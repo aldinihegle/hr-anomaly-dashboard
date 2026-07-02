@@ -22,3 +22,10 @@ backend/data/
 # IDEs
 .vscode/
 .idea/
+
+# Documents
+doc/
+
+# Python Cache
+.cache/
+__pycache__/

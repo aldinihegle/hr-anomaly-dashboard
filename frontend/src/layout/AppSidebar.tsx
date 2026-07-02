@@ -20,13 +20,13 @@ const NAV: NavItem[] = [
     icon: <PieChart className="size-5" />,
   },
   {
-    name: 'SHAP Global',
+    name: 'Akar Masalah',
     href: '#shap',
     icon: <BarChart3 className="size-5" />,
   },
   {
-    name: 'Histogram Skor',
-    href: '#histogram',
+    name: 'Analisis Demografi',
+    href: '#demografi',
     icon: <Activity className="size-5" />,
   },
   {
