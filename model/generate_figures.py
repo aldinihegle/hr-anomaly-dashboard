@@ -569,7 +569,22 @@ for ax_i, emp_idx in enumerate(top3_idx):
 
     colors_bar = [PALETTE["tinggi"] if v > 0 else PALETTE["rendah"]
                   for v in emp_shap["shap_value"]]
-    axes[ax_i].barh(emp_shap["feature"].str[-20:], emp_shap["shap_value"],
+                  
+    # Clean feature labels
+    def clean_label(feat):
+        feat = feat.replace("Department_", "Dept: ")
+        feat = feat.replace("BusinessTravel_", "Travel: ")
+        feat = feat.replace("EducationField_", "Edu: ")
+        feat = feat.replace("JobRole_", "Role: ")
+        feat = feat.replace("_Yes", " (Yes)")
+        feat = feat.replace("_", " ")
+        if len(feat) > 25:
+            return feat[:22] + "..."
+        return feat
+        
+    clean_features = emp_shap["feature"].apply(clean_label)
+
+    axes[ax_i].barh(clean_features, emp_shap["shap_value"],
                     color=colors_bar, edgecolor="white", height=0.7)
     axes[ax_i].axvline(0, color="black", linewidth=0.8)
     axes[ax_i].set_title(

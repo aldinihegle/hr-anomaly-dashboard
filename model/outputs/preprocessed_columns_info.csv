@@ -1,0 +1,45 @@
+Nama Kolom,Tipe Fitur Asli,Metode Preprocessing,Alasan Preprocessing
+Age,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+DailyRate,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+DistanceFromHome,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+Education,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+EnvironmentSatisfaction,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+HourlyRate,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+JobInvolvement,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+JobLevel,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+JobSatisfaction,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+MonthlyIncome,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+MonthlyRate,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+NumCompaniesWorked,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+PercentSalaryHike,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+PerformanceRating,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+RelationshipSatisfaction,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+StockOptionLevel,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+TotalWorkingYears,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+TrainingTimesLastYear,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+WorkLifeBalance,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+YearsAtCompany,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+YearsInCurrentRole,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+YearsSinceLastPromotion,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+YearsWithCurrManager,Numerik,StandardScaler / MinMaxScaler,Menyamakan skala data agar tidak ada fitur dominan dalam perhitungan model.
+BusinessTravel_Travel_Frequently,Kategorikal (BusinessTravel),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+BusinessTravel_Travel_Rarely,Kategorikal (BusinessTravel),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+Department_Research & Development,Kategorikal (Department),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+Department_Sales,Kategorikal (Department),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+EducationField_Life Sciences,Kategorikal (EducationField),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+EducationField_Marketing,Kategorikal (EducationField),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+EducationField_Medical,Kategorikal (EducationField),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+EducationField_Other,Kategorikal (EducationField),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+EducationField_Technical Degree,Kategorikal (EducationField),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+Gender_Male,Kategorikal (Gender),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+JobRole_Human Resources,Kategorikal (JobRole),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+JobRole_Laboratory Technician,Kategorikal (JobRole),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+JobRole_Manager,Kategorikal (JobRole),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+JobRole_Manufacturing Director,Kategorikal (JobRole),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+JobRole_Research Director,Kategorikal (JobRole),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+JobRole_Research Scientist,Kategorikal (JobRole),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+JobRole_Sales Executive,Kategorikal (JobRole),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+JobRole_Sales Representative,Kategorikal (JobRole),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+MaritalStatus_Married,Kategorikal (MaritalStatus),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+MaritalStatus_Single,Kategorikal (MaritalStatus),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.
+OverTime_Yes,Kategorikal (OverTime),One-Hot Encoding (OHE),Mengubah teks ke biner (0/1) agar model membaca kategori independen tanpa hierarki nilai.

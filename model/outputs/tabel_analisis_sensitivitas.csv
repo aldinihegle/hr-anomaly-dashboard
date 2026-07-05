@@ -1,0 +1,5 @@
+Skenario Persentil;Nilai Batas (Threshold);Jumlah Karyawan Terfilter;Proporsi (%);Karakteristik Dampak Bagi Tim HR
+Simulasi Inklusif (P85);0.5422;221;15.03%;"Terlalu longgar; beban review HR membengkak tajam karena terlalu banyak karyawan batas-normal ikut tersaring."
+Pilihan Sistem (P90);0.582;147;10.00%;"Optimal; memotong 90% beban kerja HRD dan mengunci zona transisi secara proporsional sebagai peringatan dini."
+Pilihan Sistem (P95);0.6473;74;5.03%;"Sangat Ketat; mengisolasi inti (core) anomali sebagai prioritas investigasi utama yang mendesak."
+Simulasi Eksklusif (P99);0.8096;15;1.02%;"Terlalu sempit; berisiko kehilangan profil-profil anomali laten lainnya yang berpotensi menjadi flight risk jika tidak dievaluasi."

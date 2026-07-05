@@ -420,6 +420,19 @@ function generateConclusion(emp: EmployeeAnomaly, factors: ShapLocalEntry[]): st
   return actions;
 }
 
+function isZeroValueCategory(feature: string, emp: EmployeeAnomaly): boolean {
+  if (feature.startsWith('BusinessTravel_')) return emp.businessTravel !== feature.replace('BusinessTravel_', '');
+  if (feature.startsWith('Department_')) return emp.department !== feature.replace('Department_', '');
+  if (feature.startsWith('EducationField_')) return emp.educationField !== feature.replace('EducationField_', '');
+  if (feature.startsWith('JobRole_')) return emp.jobRole !== feature.replace('JobRole_', '');
+  if (feature.startsWith('MaritalStatus_')) return emp.maritalStatus !== feature.replace('MaritalStatus_', '');
+  if (feature === 'Gender_Male') return emp.gender !== 'Male';
+  if (feature === 'Gender_Female') return emp.gender !== 'Female';
+  if (feature === 'OverTime_Yes') return emp.overTime !== 'Yes';
+  if (feature === 'OverTime_No') return emp.overTime !== 'No';
+  return false;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Komponen utama
 // ─────────────────────────────────────────────────────────────────────────────
@@ -430,8 +443,11 @@ export default function ShapLocalPanel({ employee, onClose }: Props) {
 
   const load = useCallback(() => {
     setLoading(true);
-    getShapLocal(employee.id, 12)
-      .then((rows) => setData([...rows].sort((a, b) => Math.abs(b.shapValue) - Math.abs(a.shapValue))))
+    getShapLocal(employee.id, 20)
+      .then((rows) => {
+        const filtered = rows.filter((r) => !isZeroValueCategory(r.feature, employee));
+        setData(filtered.sort((a, b) => Math.abs(b.shapValue) - Math.abs(a.shapValue)).slice(0, 12));
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [employee.id]);
